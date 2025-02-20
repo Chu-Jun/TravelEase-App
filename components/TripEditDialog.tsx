@@ -8,13 +8,12 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast"
 
-import { createTripAction } from "@/app/actions"
+import { editTripAction } from "@/app/actions"
 
 const formSchema = z.object({
     tripName: z.string().min(2, {
@@ -26,7 +25,7 @@ const formSchema = z.object({
     touristNum: z.string()
 })
 
-export default function TripCreationDialog() {
+export default function TripEditDialog({tripData}: any) {
     const { toast } = useToast();
     const router = useRouter();
 
@@ -35,23 +34,26 @@ export default function TripCreationDialog() {
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            tripName: "",
-            tripStartDate: "",
-            tripEndDate: "",
-            tag: "",
-            touristNum: "1",
+            tripName: tripData?.tripname,
+            tripStartDate: tripData?.tripstartdate,
+            tripEndDate: tripData?.tripenddate,
+            tag: tripData?.tag,
+            touristNum: (tripData?.touristnum).toString(),
         },
     });
 
     async function onSubmit(values: any) {
-        const result = await createTripAction(values);
+        // Create merged object with current data and new values
+        const mergedObject = { ...values, id: tripData?.tripid ?? null }
+    
+        const result = await editTripAction(mergedObject);
 
         const status = result.status;
         const message = result.message;
 
         if (status === "success") {
             setOpen(false); // Close dialog on successful submission
-            router.push("/itinerary-planning");
+            router.refresh();
         } else {
             console.error("Error:", message);
         }
@@ -67,15 +69,15 @@ export default function TripCreationDialog() {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button
-                    className="bg-secondary text-white mt-8 md:w-1/3 md:self-center min-w-fit"
+                    className="bg-secondary text-white md:w-1/3 md:self-center min-w-fit"
                 >
-                    Create New Trip
+                    Edit Trip
                 </Button>
             </DialogTrigger>
             <DialogContent className="text-black w-4/5 rounded-lg">
                 <DialogHeader>
                     <DialogTitle>
-                        <p className="text-primary font-extrabold">Create New Trip</p>
+                        <p className="text-primary font-extrabold">Edit Trip For {tripData?.tripname}</p>
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
@@ -174,9 +176,9 @@ export default function TripCreationDialog() {
                         />
                         <Button type="submit" className="bg-secondary text-white mt-8" disabled={form.formState.isSubmitting}>
                             {form.formState.isSubmitting ? (
-                                <span>Creating...</span>
+                                <span>Updating...</span>
                             ) : (
-                                <span>Create</span>
+                                <span>Update</span>
                             )}
                         </Button>
                     </form>

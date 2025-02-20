@@ -234,3 +234,74 @@ export const getTrips = async () => {
 
   return data;
 };
+
+export const editTripAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  console.log(formData);
+
+  // const {
+  //   data: { user },
+  // } = await supabase.auth.getUser();
+
+  const tripName = formData.tripName as string;
+  const tripStartDate = formData.tripStartDate as string;
+  const tripEndDate = formData.tripEndDate as string;
+  const tag = formData.tag as string;
+  const touristNum = parseInt(formData.touristNum, 10);
+
+  const { data, error } = await supabase
+    .from("trip")
+    .update({
+      tripname: tripName,
+      tripstartdate: tripStartDate,
+      tripenddate: tripEndDate,
+      tag: tag,
+      touristnum: touristNum,
+    }).eq("tripid", formData.id);
+
+  if (error) {
+    return {
+      status: "error",
+      message: "Could not update trip",
+    };
+  } else {
+    return {
+      status: "success",
+      message: "Trip Updated",
+    };
+  }
+
+}
+
+export async function deleteTripAction(tripid: any) {
+  try {
+      const supabase = await createClient()
+
+      // Delete related records first (assuming there's a workshop_registrations table)
+      const { error: deletionError } = await supabase
+          .from("trip")
+          .delete()
+          .eq("tripid", tripid)
+
+      if (deletionError) {
+          console.error("Error deleting selected trip:", deletionError)
+          return {
+              status: "error",
+              message: "Failed to delete selected trip."
+          }
+      }
+
+      return {
+          status: "success",
+          message: "Trip deleted successfully"
+      }
+  } catch (error) {
+      console.error("Delete trip error:", error)
+      return {
+          status: "error",
+          message: "An unexpected error occurred"
+      }
+  }
+}

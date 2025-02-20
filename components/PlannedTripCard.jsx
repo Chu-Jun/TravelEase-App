@@ -2,8 +2,18 @@ import Image from "next/image";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faClock } from "@fortawesome/free-solid-svg-icons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import TripEditDialog from "@/components/TripEditDialog";
+import TripDeletionDialog from "@/components/TripDeletionDialog";
 
-const PlannedTripCard = ({ imageSrc, tripTitle, touristNum, duration, tag }) => {
+const PlannedTripCard = ({ imageSrc, tripTitle, touristNum, duration, tag, trip }) => {
   return (
     <Card className="bg-[#F5EFFF] shadow-md rounded-2xl p-4 flex items-center max-w-lg">
       {/* Image on the left */}
@@ -33,13 +43,25 @@ const PlannedTripCard = ({ imageSrc, tripTitle, touristNum, duration, tag }) => 
             <FontAwesomeIcon icon={faClock} className="text-gray-500" />
             <span>{duration}</span>
           </div>
+          <TripEditDialog tripData={trip} />
+          <TripDeletionDialog tripData={trip} />
         </div>
       </div>
 
-      {/* Button */}
-      <button className="ml-4 text-gray-500 hover:text-gray-800">
-        ...
-      </button>
+      {/* Dropdown Menu with DialogTriggers */}
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <button className="ml-4 text-gray-500 hover:text-gray-800">...</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem>
+            <TripEditDialog tripData={trip} />
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <TripDeletionDialog tripData={trip} />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </Card>
   );
 };

@@ -101,6 +101,7 @@ const ItineraryPlanningPage = () => {
                 touristNum={trip.touristnum}
                 duration={calculateDuration(trip.tripstartdate, trip.tripenddate)}
                 tag={trip.tag}
+                trip={trip}
               />
             </div>
           ))}
