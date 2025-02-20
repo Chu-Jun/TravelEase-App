@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import HeaderAuth from "@/components/header-auth";
 import { inter } from "./fonts";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
           </Navbar>
           {children}
         </div>
+        <Toaster />
       </body>
     </html>
   );

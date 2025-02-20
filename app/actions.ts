@@ -183,3 +183,54 @@ export const userUpdateProfileAction = async (formData: any) => {
   }
 
 }
+
+export const createTripAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const userId = user?.id;
+  const tripName = formData.tripName as string;
+  const tripStartDate = formData.tripStartDate as string;
+  const tripEndDate = formData.tripEndDate as string;
+  const tag = formData.tag as string;
+  const touristNum = parseInt(formData.touristNum, 10);
+
+  const { data, error } = await supabase
+    .from("trip")
+    .insert({
+      userid: userId,
+      tripname: tripName,
+      tripstartdate: tripStartDate,
+      tripenddate: tripEndDate,
+      tag: tag,
+      touristnum: touristNum,
+    });
+
+  if (error) {
+    return {
+      status: "error",
+      message: error.message + "Could not create trip",
+    };
+  } else {
+    return {
+      status: "success",
+      message: "Trip Created",
+    };
+  }
+}
+
+export const getTrips = async () => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("trip").select("*");
+
+  if (error) {
+    console.error("Error fetching trips: ", error);
+    return [];
+  }
+
+  return data;
+};

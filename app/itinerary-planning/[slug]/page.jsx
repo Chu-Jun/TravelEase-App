@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLocationDot, faChevronRight, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import DynamicInputField from "@/components/ui/dynamic-input";
 import { useParams } from "next/navigation";
-import { trip_list } from "@/data/trip_list";
+import { getTrips } from "@/app/actions";
 
 const generateDays = (startDate, endDate) => {
   const days = [];
@@ -24,33 +24,66 @@ const generateDays = (startDate, endDate) => {
 
 const TravelEaseItineraryPage = () => {
   const { slug } = useParams();
-  const trip = trip_list.find((trip) => trip.slug === slug);
+  
+  // State hooks initialized upfront, not inside any conditionals
+  const [trips, setTrips] = useState([]);
+  const [trip, setTrip] = useState(null);
+  const [loading, setLoading] = useState(true); // Loading state
+  const [itinerary, setItinerary] = useState({});
+  const [collapsedSections, setCollapsedSections] = useState({});
 
+  useEffect(() => {
+    if (!slug) return; // Don't fetch trips if slug is not available
+
+    const fetchTrips = async () => {
+      try {
+        setLoading(true);
+        const fetchedTrips = await getTrips(); // Assuming getTrips() fetches your trips data
+        console.log(fetchedTrips);
+
+        if (fetchedTrips && fetchedTrips.length > 0) {
+          setTrips(fetchedTrips);
+          const selectedTrip = fetchedTrips.find((trip) => trip.tripid === slug);
+          if (selectedTrip) {
+            setTrip(selectedTrip);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching trips:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrips();
+  }, [slug]); // Dependency on slug to refetch if it changes
+
+  // If loading, show loading screen
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  // If no trip is found, show error
   if (!trip) {
     return <div>Trip not found!</div>;
   }
 
-  const days = generateDays(trip.startDate, trip.endDate);
+  // Generate days array based on trip dates
+  const days = generateDays(trip.tripstartdate, trip.tripenddate);
 
-  const initializeItinerary = () =>
-    Object.fromEntries(
-      days.map((day) => [
-        day.label,
-        JSON.parse(localStorage.getItem(`itinerary_${day.label}`)) || [""],
-      ])
-    );
-
-  const [itinerary, setItinerary] = useState(initializeItinerary);
-
-  const [collapsedSections, setCollapsedSections] = useState(
-    Object.fromEntries(days.map((day) => [day.label, false]))
-  );
-
+  // Initialize itinerary state based on localStorage or default empty array
   useEffect(() => {
-    Object.entries(itinerary).forEach(([dayLabel, places]) => {
-      localStorage.setItem(`itinerary_${dayLabel}`, JSON.stringify(places));
-    });
-  }, [itinerary]);
+    const initializeItinerary = () => {
+      return Object.fromEntries(
+        days.map((day) => [
+          day.label,
+          JSON.parse(localStorage.getItem(`itinerary_${day.label}`)) || [""],
+        ])
+      );
+    };
+
+    setItinerary(initializeItinerary());
+  }, [days]);
 
   const handleDayChange = (day, updatedPlaces) => {
     setItinerary((prevItinerary) => ({
@@ -65,6 +98,13 @@ const TravelEaseItineraryPage = () => {
       [dayLabel]: !prevState[dayLabel],
     }));
   };
+
+  // Store itinerary to localStorage whenever it changes
+  useEffect(() => {
+    Object.entries(itinerary).forEach(([dayLabel, places]) => {
+      localStorage.setItem(`itinerary_${dayLabel}`, JSON.stringify(places));
+    });
+  }, [itinerary]);
 
   return (
     <div className="flex h-screen mt-16">
