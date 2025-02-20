@@ -8,6 +8,8 @@ import { useParams } from "next/navigation";
 import { getTrips } from "@/app/actions";
 
 const generateDays = (startDate, endDate) => {
+  if (!startDate || !endDate) return [];
+  
   const days = [];
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -25,20 +27,22 @@ const generateDays = (startDate, endDate) => {
 const TravelEaseItineraryPage = () => {
   const { slug } = useParams();
   
-  // State hooks initialized upfront, not inside any conditionals
+  // State hooks initialized upfront
   const [trips, setTrips] = useState([]);
   const [trip, setTrip] = useState(null);
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState([]);
   const [itinerary, setItinerary] = useState({});
   const [collapsedSections, setCollapsedSections] = useState({});
 
+  // Fetch trips data
   useEffect(() => {
-    if (!slug) return; // Don't fetch trips if slug is not available
+    if (!slug) return;
 
     const fetchTrips = async () => {
       try {
         setLoading(true);
-        const fetchedTrips = await getTrips(); // Assuming getTrips() fetches your trips data
+        const fetchedTrips = await getTrips();
         console.log(fetchedTrips);
 
         if (fetchedTrips && fetchedTrips.length > 0) {
@@ -46,6 +50,9 @@ const TravelEaseItineraryPage = () => {
           const selectedTrip = fetchedTrips.find((trip) => trip.tripid === slug);
           if (selectedTrip) {
             setTrip(selectedTrip);
+            // Generate days when trip is available
+            const generatedDays = generateDays(selectedTrip.tripstartdate, selectedTrip.tripenddate);
+            setDays(generatedDays);
           }
         }
       } catch (error) {
@@ -56,23 +63,12 @@ const TravelEaseItineraryPage = () => {
     };
 
     fetchTrips();
-  }, [slug]); // Dependency on slug to refetch if it changes
+  }, [slug]);
 
-  // If loading, show loading screen
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  // If no trip is found, show error
-  if (!trip) {
-    return <div>Trip not found!</div>;
-  }
-
-  // Generate days array based on trip dates
-  const days = generateDays(trip.tripstartdate, trip.tripenddate);
-
-  // Initialize itinerary state based on localStorage or default empty array
+  // Initialize itinerary from localStorage
   useEffect(() => {
+    if (days.length === 0) return;
+    
     const initializeItinerary = () => {
       return Object.fromEntries(
         days.map((day) => [
@@ -84,6 +80,13 @@ const TravelEaseItineraryPage = () => {
 
     setItinerary(initializeItinerary());
   }, [days]);
+
+  // Store itinerary to localStorage
+  useEffect(() => {
+    Object.entries(itinerary).forEach(([dayLabel, places]) => {
+      localStorage.setItem(`itinerary_${dayLabel}`, JSON.stringify(places));
+    });
+  }, [itinerary]);
 
   const handleDayChange = (day, updatedPlaces) => {
     setItinerary((prevItinerary) => ({
@@ -99,12 +102,15 @@ const TravelEaseItineraryPage = () => {
     }));
   };
 
-  // Store itinerary to localStorage whenever it changes
-  useEffect(() => {
-    Object.entries(itinerary).forEach(([dayLabel, places]) => {
-      localStorage.setItem(`itinerary_${dayLabel}`, JSON.stringify(places));
-    });
-  }, [itinerary]);
+  // Render loading state
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
+
+  // Render error state if trip not found
+  if (!trip) {
+    return <div className="flex h-screen items-center justify-center">Trip not found!</div>;
+  }
 
   return (
     <div className="flex h-screen mt-16">
@@ -158,7 +164,9 @@ const TravelEaseItineraryPage = () => {
                   placeholder="Add Place"
                   onChange={(places) => handleDayChange(day.label, places)}
                   initialData={itinerary[day.label]}
+                  aria-describedby="place-description"
                 />
+                <span id="place-description" className="sr-only">Enter places to visit</span>
               </div>
             )}
           </div>
