@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLocationDot, faChevronRight, faChevronDown } from "@fortawesome/free-solid-svg-icons";
-import DynamicInputField from "@/components/ui/dynamic-input";
+import { 
+  faLocationDot, 
+  faChevronRight, 
+  faChevronDown, 
+  faArrowUp, 
+  faArrowDown,
+  faSave
+} from "@fortawesome/free-solid-svg-icons";
 import { useParams } from "next/navigation";
 import { getTrips } from "@/app/actions";
 
@@ -34,6 +40,8 @@ const TravelEaseItineraryPage = () => {
   const [days, setDays] = useState([]);
   const [itinerary, setItinerary] = useState({});
   const [collapsedSections, setCollapsedSections] = useState({});
+  const [editedItinerary, setEditedItinerary] = useState({});
+  const [hasChanges, setHasChanges] = useState({});
 
   // Fetch trips data
   useEffect(() => {
@@ -70,29 +78,145 @@ const TravelEaseItineraryPage = () => {
     if (days.length === 0) return;
     
     const initializeItinerary = () => {
-      return Object.fromEntries(
+      const initialItinerary = Object.fromEntries(
         days.map((day) => [
           day.label,
           JSON.parse(localStorage.getItem(`itinerary_${day.label}`)) || [""],
         ])
       );
+      
+      return initialItinerary;
     };
 
-    setItinerary(initializeItinerary());
+    const initialItinerary = initializeItinerary();
+    setItinerary(initialItinerary);
+    setEditedItinerary(JSON.parse(JSON.stringify(initialItinerary)));
   }, [days]);
 
-  // Store itinerary to localStorage
-  useEffect(() => {
-    Object.entries(itinerary).forEach(([dayLabel, places]) => {
-      localStorage.setItem(`itinerary_${dayLabel}`, JSON.stringify(places));
+  // Function to handle input field changes
+  const handlePlaceChange = (day, index, value) => {
+    setEditedItinerary((prev) => {
+      const dayPlaces = [...prev[day]];
+      dayPlaces[index] = value;
+      
+      // Update has changes status
+      const originalValue = itinerary[day][index];
+      const dayHasChanges = originalValue !== value || 
+        JSON.stringify(prev[day]) !== JSON.stringify(itinerary[day]);
+      
+      setHasChanges(prevChanges => ({
+        ...prevChanges,
+        [day]: dayHasChanges
+      }));
+      
+      return {
+        ...prev,
+        [day]: dayPlaces
+      };
     });
-  }, [itinerary]);
+  };
 
-  const handleDayChange = (day, updatedPlaces) => {
-    setItinerary((prevItinerary) => ({
-      ...prevItinerary,
-      [day]: updatedPlaces,
+  // Function to add a new place
+  const addPlace = (day) => {
+    setEditedItinerary((prev) => {
+      const dayPlaces = [...prev[day], ""];
+      
+      setHasChanges(prevChanges => ({
+        ...prevChanges,
+        [day]: true
+      }));
+      
+      return {
+        ...prev,
+        [day]: dayPlaces
+      };
+    });
+  };
+
+  // Function to remove a place
+  const removePlace = (day, index) => {
+    setEditedItinerary((prev) => {
+      const dayPlaces = [...prev[day]];
+      dayPlaces.splice(index, 1);
+      
+      // If all places are removed, add an empty one
+      if (dayPlaces.length === 0) {
+        dayPlaces.push("");
+      }
+      
+      setHasChanges(prevChanges => ({
+        ...prevChanges,
+        [day]: true
+      }));
+      
+      return {
+        ...prev,
+        [day]: dayPlaces
+      };
+    });
+  };
+
+  // Function to move a place up
+  const moveUp = (day, index) => {
+    if (index === 0 || dayPlaces[index]==null) return;
+    
+    setEditedItinerary((prev) => {
+      const dayPlaces = [...prev[day]];
+      const temp = dayPlaces[index];
+      dayPlaces[index] = dayPlaces[index - 1];
+      dayPlaces[index - 1] = temp;
+      
+      setHasChanges(prevChanges => ({
+        ...prevChanges,
+        [day]: true
+      }));
+      
+      return {
+        ...prev,
+        [day]: dayPlaces
+      };
+    });
+  };
+
+  // Function to move a place down
+  const moveDown = (day, index) => {
+    setEditedItinerary((prev) => {
+      const dayPlaces = [...prev[day]];
+      if (index === dayPlaces.length - 1) return prev;
+      
+      const temp = dayPlaces[index];
+      dayPlaces[index] = dayPlaces[index + 1];
+      dayPlaces[index + 1] = temp;
+      
+      setHasChanges(prevChanges => ({
+        ...prevChanges,
+        [day]: true
+      }));
+      
+      return {
+        ...prev,
+        [day]: dayPlaces
+      };
+    });
+  };
+
+  // Function to save changes to localStorage
+  const saveChanges = (day) => {
+    const updatedPlaces = editedItinerary[day];
+    localStorage.setItem(`itinerary_${day}`, JSON.stringify(updatedPlaces));
+    
+    setItinerary(prev => ({
+      ...prev,
+      [day]: [...updatedPlaces]
     }));
+    
+    setHasChanges(prev => ({
+      ...prev,
+      [day]: false
+    }));
+    
+    // Show a success message (optional)
+    alert(`Saved changes for ${day}`);
   };
 
   const toggleSection = (dayLabel) => {
@@ -138,7 +262,7 @@ const TravelEaseItineraryPage = () => {
       <div className="w-3/4 p-6">
         <h2 className="text-2xl font-bold mb-4">Itinerary</h2>
         {days.map((day) => (
-          <div key={day.label} className="mb-6">
+          <div key={day.label} className="mb-6 border rounded-lg p-4 shadow-sm">
             <h3
               className="font-bold text-lg flex items-center justify-between cursor-pointer"
               onClick={() => toggleSection(day.label)}
@@ -154,19 +278,71 @@ const TravelEaseItineraryPage = () => {
               />
             </h3>
             {!collapsedSections[day.label] && (
-              <div className="mt-2 flex items-center gap-2">
-                <FontAwesomeIcon
-                  icon={faLocationDot}
-                  className="text-gray-400 text-lg"
-                />
-                <DynamicInputField
-                  label=""
-                  placeholder="Add Place"
-                  onChange={(places) => handleDayChange(day.label, places)}
-                  initialData={itinerary[day.label]}
-                  aria-describedby="place-description"
-                />
-                <span id="place-description" className="sr-only">Enter places to visit</span>
+              <div className="mt-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium">Places to Visit</h4>
+                  {hasChanges[day.label] && (
+                    <button 
+                      onClick={() => saveChanges(day.label)}
+                      className="bg-green-500 text-white px-3 py-1 rounded-md flex items-center gap-1 text-sm"
+                    >
+                      <FontAwesomeIcon icon={faSave} />
+                      Save Changes
+                    </button>
+                  )}
+                </div>
+                
+                {editedItinerary[day.label]?.map((place, index) => (
+                  <div key={index} className="flex items-center gap-2 mb-2">
+                    <FontAwesomeIcon
+                      icon={faLocationDot}
+                      className="text-gray-400 text-lg min-w-4"
+                    />
+                    <input
+                      type="text"
+                      value={place}
+                      onChange={(e) => handlePlaceChange(day.label, index, e.target.value)}
+                      className="flex-grow border rounded-md p-2"
+                      placeholder="Add Place"
+                      aria-describedby={`place-description-${day.label}-${index}`}
+                    />
+                    <div className="flex gap-1">
+                      <button 
+                        onClick={() => moveUp(day.label, index)}
+                        disabled={index === 0}
+                        className={`p-1 rounded ${index === 0 ? 'text-gray-300' : 'text-blue-500 hover:bg-blue-100'}`}
+                        title="Move Up"
+                      >
+                        <FontAwesomeIcon icon={faArrowUp} />
+                      </button>
+                      <button 
+                        onClick={() => moveDown(day.label, index)}
+                        disabled={index === editedItinerary[day.label].length - 1}
+                        className={`p-1 rounded ${index === editedItinerary[day.label].length - 1 ? 'text-gray-300' : 'text-blue-500 hover:bg-blue-100'}`}
+                        title="Move Down"
+                      >
+                        <FontAwesomeIcon icon={faArrowDown} />
+                      </button>
+                      <button 
+                        onClick={() => removePlace(day.label, index)}
+                        className="p-1 rounded text-red-500 hover:bg-red-100"
+                        title="Remove"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <span id={`place-description-${day.label}-${index}`} className="sr-only">
+                      Enter place to visit for {day.label}
+                    </span>
+                  </div>
+                ))}
+                
+                <button 
+                  onClick={() => addPlace(day.label)}
+                  className="mt-2 text-blue-500 hover:text-blue-700 flex items-center gap-1"
+                >
+                  + Add another place
+                </button>
               </div>
             )}
           </div>

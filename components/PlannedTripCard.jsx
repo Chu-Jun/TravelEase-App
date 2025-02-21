@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useState } from "react"; // Add this
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faClock } from "@fortawesome/free-solid-svg-icons";
@@ -14,6 +15,10 @@ import TripEditDialog from "@/components/TripEditDialog";
 import TripDeletionDialog from "@/components/TripDeletionDialog";
 
 const PlannedTripCard = ({ imageSrc, tripTitle, touristNum, duration, tag, trip }) => {
+  // Add state to control dialog visibility
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   return (
     <Card className="bg-[#F5EFFF] shadow-md rounded-2xl p-4 flex items-center max-w-lg">
       {/* Image on the left */}
@@ -43,25 +48,34 @@ const PlannedTripCard = ({ imageSrc, tripTitle, touristNum, duration, tag, trip 
             <FontAwesomeIcon icon={faClock} className="text-gray-500" />
             <span>{duration}</span>
           </div>
-          <TripEditDialog tripData={trip} />
-          <TripDeletionDialog tripData={trip} />
         </div>
       </div>
 
-      {/* Dropdown Menu with DialogTriggers */}
+      {/* Dropdown Menu with click handlers instead of Dialog components */}
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <button className="ml-4 text-gray-500 hover:text-gray-800">...</button>
+          <button className="ml-4 font-extrabold text-gray-800 hover:text-black">...</button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem>
-            <TripEditDialog tripData={trip} />
+          <DropdownMenuItem onSelect={(e) => {
+            e.preventDefault();
+            setEditDialogOpen(true);
+          }}>
+            Edit Trip
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <TripDeletionDialog tripData={trip} />
+          <DropdownMenuItem onSelect={(e) => {
+            e.preventDefault();
+            setDeleteDialogOpen(true);
+          }}>
+            Delete Trip
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <div className="invisible absolute bottom-0 left-0">
+        {/* Render the dialogs separately, controlled by state */}
+        <TripEditDialog tripData={trip} open={editDialogOpen} onOpenChange={setEditDialogOpen} />
+        <TripDeletionDialog tripData={trip} open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} />
+      </div>
     </Card>
   );
 };

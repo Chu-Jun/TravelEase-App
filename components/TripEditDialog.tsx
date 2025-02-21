@@ -25,11 +25,11 @@ const formSchema = z.object({
     touristNum: z.string()
 })
 
-export default function TripEditDialog({tripData}: any) {
+export default function TripEditDialog({tripData, open, onOpenChange}: any) {
     const { toast } = useToast();
     const router = useRouter();
 
-    const [open, setOpen] = useState(false);
+    const [isDialogOpen, setOpen] = useState(false);
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -66,7 +66,7 @@ export default function TripEditDialog({tripData}: any) {
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>
                 <Button
                     className="bg-secondary text-white md:w-1/3 md:self-center min-w-fit"

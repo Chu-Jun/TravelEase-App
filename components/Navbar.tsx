@@ -23,7 +23,7 @@ function Navbar ({
       }, []);
 
   return (
-    <div className={`p-8 lg:px-16 lg:py-5 flex justify-between items-center fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+    <div className={`p-5 lg:px-16 lg:py-2 flex justify-between items-center fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         isScrolled ? "bg-white/70 backdrop-blur-md shadow-md" : "bg-white shadow-md"
       }`}>
         <Link href="/">

@@ -11,13 +11,13 @@ import { useToast } from "@/hooks/use-toast"
 
 import { deleteTripAction } from "@/app/actions"
 
-export default function TripDeletionDialog({tripData}: any) {
+export default function TripDeletionDialog({tripData, open, onOpenChange}: any) {
     const { toast } = useToast();
     const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-    const handleDeleteWorkshop = async () => {
+    const handleDeleteTrip = async () => {
         try {
             setIsDeleting(true)
             const result = await deleteTripAction(tripData.tripid)
@@ -36,7 +36,7 @@ export default function TripDeletionDialog({tripData}: any) {
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: error instanceof Error ? error.message : "Failed to delete workshop",
+                description: error instanceof Error ? error.message : "Failed to delete trip",
             })
         } finally {
             setIsDeleting(false)
@@ -44,7 +44,7 @@ export default function TripDeletionDialog({tripData}: any) {
     }
 
     return (
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogTrigger asChild>
             <Button variant="outline" className="bg-secondary text-white md:w-1/3 md:self-center min-w-fit">
                 Delete Trip
@@ -56,15 +56,15 @@ export default function TripDeletionDialog({tripData}: any) {
                     <FontAwesomeIcon icon={faExclamationCircle}/>
                 </div>
                 <DialogTitle className="text-xl font-semibold text-center text-primary">
-                    Delete Workshop?
+                    Delete Trip?
                 </DialogTitle>
                 <p className="text-sm text-center text-gray-500">
-                    Do you want to delete this workshop?
+                    Do you want to delete this trip?
                 </p>
             </DialogHeader>
             <DialogFooter className="flex justify-center gap-4 mt-3">
                 <Button
-                    onClick={handleDeleteWorkshop}
+                    onClick={handleDeleteTrip}
                     className="bg-primary text-white hover:bg-red-700"
                     disabled={isDeleting}
                 >
