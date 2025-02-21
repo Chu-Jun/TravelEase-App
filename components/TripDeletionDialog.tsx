@@ -27,6 +27,7 @@ export default function TripDeletionDialog({tripData, open, onOpenChange}: any) 
                     title: "Success",
                     description: "Trip deleted successfully",
                 })
+                window.location.reload();
                 setIsDialogOpen(false);
                 router.refresh();
             } else {

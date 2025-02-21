@@ -52,6 +52,7 @@ export default function TripCreationDialog() {
         if (status === "success") {
             setOpen(false); // Close dialog on successful submission
             router.push("/itinerary-planning");
+            window.location.reload();
         } else {
             console.error("Error:", message);
         }

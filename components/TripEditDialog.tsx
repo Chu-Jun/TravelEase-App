@@ -52,6 +52,7 @@ export default function TripEditDialog({tripData, open, onOpenChange}: any) {
         const message = result.message;
 
         if (status === "success") {
+            window.location.reload();
             setOpen(false); // Close dialog on successful submission
             router.refresh();
         } else {
