@@ -54,7 +54,7 @@ const PlannedTripCard = ({ imageSrc, tripTitle, touristNum, duration, tag, trip 
       {/* Dropdown Menu with click handlers instead of Dialog components */}
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <button className="ml-4 font-extrabold text-gray-800 hover:text-black">...</button>
+          <span className="ml-4 font-extrabold text-gray-800 hover:text-black">...</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem onSelect={(e) => {

@@ -49,7 +49,7 @@ const ItineraryPlanningPage = () => {
     }
     
     const timeDiff = end.getTime() - start.getTime();
-    const days = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    const days = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1; // Need to also add in the start date
     return `${days} Days`;
   };
 
