@@ -2,7 +2,7 @@ import Image from "next/image";
 import { useState } from "react"; // Add this
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faClock } from "@fortawesome/free-solid-svg-icons";
+import { faMoneyBill, faCar, faHome, faUtensils } from "@fortawesome/free-solid-svg-icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,13 +18,28 @@ const ExpenseRecordCard = ({ expenseRecord }: any) => {
   // Add state to control dialog visibility
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  let icon = null;
+  
+    switch (expenseRecord.category) {
+      case 'FnB':
+        icon = faUtensils;
+        break;
+      case 'Accommodation':
+        icon = faHome;
+        break;
+      case 'Transportation':
+        icon = faCar;
+        break;
+      default:
+        icon = faMoneyBill;
+    }
 
   return (
     <Card className="">
       <div key={expenseRecord.expensesRecordId} className="flex items-center p-4 bg-white shadow-md rounded-lg">
           {/* Category Icon (Example: You can use dynamic icons for each category) */}
           <div className="w-10 h-10 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full mr-4">
-            🏨 {/* Example icon for accommodation */}
+            <FontAwesomeIcon icon={icon}></FontAwesomeIcon>
           </div>
           
           {/* Expense Details */}

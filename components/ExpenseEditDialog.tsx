@@ -36,7 +36,7 @@ export default function ExpenseEditDialog({expenseData, open, onOpenChange}: any
         defaultValues: {
             expenserecordid: expenseData.expensesrecordid,
             date: expenseData.date,
-            amountspent: expenseData.amountspent,
+            amountspent: (expenseData.amountspent).toString(),
             category: expenseData.category,
             remarks: expenseData.remarks,
         },
@@ -47,7 +47,7 @@ export default function ExpenseEditDialog({expenseData, open, onOpenChange}: any
             form.reset({
                 expenserecordid: expenseData.expensesrecordid || "",
                 date: expenseData.date || "",
-                amountspent: expenseData.amountspent || "",
+                amountspent: (expenseData.amountspent).toString() || "",
                 category: expenseData.category || "",
                 remarks: expenseData.remarks || "",
             });

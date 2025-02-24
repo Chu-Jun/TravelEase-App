@@ -18,6 +18,7 @@ const ExpenseTrackingPage = () => {
   const [trips, setTrips] = useState([]);
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [expenses, setExpenses] = useState([]); // Store expenses
+  const [balance, setBalance] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -48,7 +49,13 @@ const ExpenseTrackingPage = () => {
         try {
           const retrievedExpenses = await getExpenses(selectedTrip.tripid);
           setExpenses(retrievedExpenses);
-          console.log("Fetched expenses:", retrievedExpenses);
+          let totalExpenses = retrievedExpenses
+          .map(expense => parseFloat(expense.amountspent)) // Convert to number
+          .reduce((acc, curr) => acc + curr, 0); // Sum up the values
+
+          let tempBalance = parseFloat(selectedTrip.budget) - totalExpenses;
+          setBalance(tempBalance);
+
         } catch (error) {
           console.error("Error fetching expenses:", error);
         }
@@ -99,7 +106,7 @@ const ExpenseTrackingPage = () => {
             <div>
               <p className="text-gray-600 text-sm">Current Balance</p>
               <p className="text-gray-800 font-semibold text-lg">
-                {selectedTrip.budget}
+                {balance}
               </p>
             </div>
           ) : (
