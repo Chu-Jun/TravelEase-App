@@ -283,6 +283,34 @@ export const editTripAction = async (formData: any) => {
 
 }
 
+export const editTripBudgetAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  const budget = formData.budget as string;
+
+  const { data, error } = await supabase
+    .from("trip")
+    .update({
+      budget: budget,
+    }).eq("tripid", formData.id);
+
+  if (error) {
+    return {
+      status: "error",
+      message: "Could not update trip budget",
+    };
+  } else {
+    // Revalidate the itinerary page
+    revalidatePath(`/expense-tracking`);
+    return {
+      status: "success",
+      message: "Trip Budget Updated",
+    };
+  }
+
+}
+
 export async function deleteTripAction(tripid: any) {
   try {
       const supabase = await createClient()
@@ -660,4 +688,117 @@ export async function reorderItinerary(tripId: any, dayLabel: any, orderedPlaces
     // For non-standard errors
     return { error: "Failed to reorder itinerary: " + String(error) };
 }
+}
+
+export const createExpenseAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  console.log(formData);
+  const tripid = formData.tripid as string;
+  const date = formData.date as string;
+  const amountspent = parseFloat(formData.amountspent);
+  const category = formData.category as string;
+  const remarks = formData.remarks as string;
+
+  const { data, error } = await supabase
+    .from("expenserecord")
+    .insert({
+      tripid: tripid,
+      date: date,
+      amountspent: amountspent,
+      category: category,
+      remarks: remarks,
+    });
+
+  if (error) {
+    return {
+      status: "error",
+      message: error.message + "Could not create expense record",
+    };
+  } else {
+    return {
+      status: "success",
+      message: "Expense Record Created",
+    };
+  }
+}
+
+export const getExpenses = async (tripId: any) => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("expenserecord").select("*").eq("tripid", tripId);
+
+  if (error) {
+    console.error("Error fetching expense records: ", error);
+    return [];
+  }
+
+  return data;
+};
+
+export const editExpenseAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  console.log(formData);
+
+  const date = formData.date as string;
+  const amountspent = parseFloat(formData.amountspent);
+  const category = formData.category as string;
+  const remarks = formData.remarks as string;
+
+  const { data, error } = await supabase
+    .from("expenserecord")
+    .update({
+      date: date,
+      amountspent: amountspent,
+      category: category,
+      remarks: remarks,
+    }).eq("expensesrecordid", formData.id);
+
+  if (error) {
+    console.log(error.message);
+    return {
+      status: "error",
+      message: "Could not update expense record",
+    };
+  } else {
+    // Revalidate the expense tracking page
+    revalidatePath(`/expense-tracking`);
+    return {
+      status: "success",
+      message: "Record Updated",
+    };
+  }
+
+}
+
+export async function deleteExpenseAction(expensesRecordId: any) {
+  try {
+      const supabase = await createClient()
+
+      const { error: deletionError } = await supabase
+          .from("expenserecord")
+          .delete()
+          .eq("expensesrecordid", expensesRecordId)
+
+      if (deletionError) {
+          console.error("Error deleting selected record:", deletionError, expensesRecordId)
+          return {
+              status: "error",
+              message: "Failed to delete selected record."
+          }
+      }
+
+      return {
+          status: "success",
+          message: "Record deleted successfully"
+      }
+  } catch (error) {
+      console.error("Delete record error:", error)
+      return {
+          status: "error",
+          message: "An unexpected error occurred"
+      }
+  }
 }
