@@ -13,42 +13,36 @@ import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import BudgetCreationDialog from "@/components/BudgetCreationDialog";
 import ExpenseCreationDialog from "@/components/ExpenseCreationDialog";
 import ExpenseRecordCard from "@/components/ExpenseRecordCard";
+import ExpensePieChart from "@/components/ExpensePieChart"; // Import the Pie Chart component
+import ExpenseBarChart from "@/components/ExpenseBarChart"; // Import the Bar Chart component
+import { format, isToday, isYesterday } from "date-fns";
 
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { Pie } from 'react-chartjs-2';
+// Define interfaces for type safety
+interface Trip {
+  tripid: string;
+  tripname: string;
+  budget: string;
+  // Add other trip properties as needed
+}
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+interface Expense {
+  expensesrecordid: string;
+  tripid: string;
+  category: string;
+  amountspent: string;
+  date: string;
+  remarks: string;
+  // Add other expense properties as needed
+}
 
-const colorsList = [
-  "rgba(255, 99, 132, 0.2)",
-  "rgba(54, 162, 235, 0.2)",
-  "rgba(255, 206, 86, 0.2)",
-  "rgba(75, 192, 192, 0.2)",
-  "rgba(73, 12, 212, 0.2)",
-  "rgba(175, 2, 81, 0.2)",
-  "rgba(23, 31, 92, 0.2)",
-  "rgba(46, 123, 166, 0.2)",
-  "rgba(35, 222, 1777, 0.2)",
-  "rgba(91, 129, 188, 0.2)",
-  "rgba(88, 113, 199, 0.2)",
-  "rgba(66, 211, 200, 0.2)",
-  "rgba(23, 19, 201, 0.2)",
-  "rgba(22, 92, 122, 0.2)",
-  "rgba(70, 12, 222, 0.2)",
-];
-
-const ExpenseTrackingPage = () => {
-  const [trips, setTrips] = useState([]);
-  const [selectedTrip, setSelectedTrip] = useState(null);
-  const [expenses, setExpenses] = useState([]); // Store expenses
-  const [balance, setBalance] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [data,setData] = useState([])
+const ExpenseTrackingPage: React.FC = () => {
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [balance, setBalance] = useState<number>(0);
+  const [totalExpense, setTotalExpense] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
-  let tempLabelList = [];
-  let tempExpenseList = [];
-  let tempResults;
-
 
   useEffect(() => {
     // Fetch trip data on component mount
@@ -78,37 +72,14 @@ const ExpenseTrackingPage = () => {
           const retrievedExpenses = await getExpenses(selectedTrip.tripid);
           setExpenses(retrievedExpenses);
 
-          // To show the balance for the trip
-          let totalExpenses = retrievedExpenses
-          .map(expense => parseFloat(expense.amountspent)) // Convert to number
-          .reduce((acc, curr) => acc + curr, 0); // Sum up the values
+          // Calculate balance
+          const tempTotalExpenses = retrievedExpenses
+            .map(expense => parseFloat(expense.amountspent))
+            .reduce((acc, curr) => acc + curr, 0);
 
-          let tempBalance = parseFloat(selectedTrip.budget) - totalExpenses;
+          const tempBalance = parseFloat(selectedTrip.budget) - tempTotalExpenses;
           setBalance(tempBalance);
-          console.log(retrievedExpenses);
-
-          // To generate chart
-          tempResults = Object.values(retrievedExpenses.reduce((acc, {amountspent, category, date, expensesrecordid, remarks, tripid}) => {
-            const key = category;  // Use the actual category as the key
-            acc[key] = acc[key] || {amountspent: 0, category, date, expensesrecordid, remarks, tripid};
-            
-            // Check if data already exists, and safely update the amountspent
-            acc[key].amountspent += Number(amountspent);
-        
-            return acc;
-        }, {}));
-        
-        console.log("Temp results: ", tempResults);
-
-        tempResults.forEach((result) => {
-          tempLabelList.push(result.category)
-          tempExpenseList.push(Number(result.amountspent))
-        })
-
-        console.log("Temp Label: ", tempLabelList);
-        console.log("Temp expense: ", tempExpenseList);
-        renderChart(tempLabelList, tempExpenseList);
-
+          setTotalExpense(tempTotalExpenses);
         } catch (error) {
           console.error("Error fetching expenses:", error);
         }
@@ -117,22 +88,6 @@ const ExpenseTrackingPage = () => {
 
     fetchExpenses();
   }, [selectedTrip]);
-
-  const renderChart = (label,qt) => {
-    let tempData = {
-      labels: label,
-      datasets: [
-        {
-          label: "Expenses by Category",
-          data: qt,
-          backgroundColor: colorsList.slice(0,label.length),
-          borderWidth: 1,
-        },
-      ],
-    };
-
-    setData(tempData);
-  }
 
   if (isLoading) {
     return <div className="flex mt-16 justify-center items-center h-screen">Loading trips...</div>;
@@ -145,6 +100,34 @@ const ExpenseTrackingPage = () => {
       </div>
     );
   }
+
+  const groupExpensesByDate = (expenses: Expense[]) => {
+    // First sort expenses by date (newest first)
+    const sortedExpenses = [...expenses].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    
+    // Then group them
+    return sortedExpenses.reduce<{ [key: string]: Expense[] }>((groups, expense) => {
+      const expenseDate = new Date(expense.date);
+      let dateGroup: string;
+      
+      if (isToday(expenseDate)) {
+        dateGroup = "Today";
+      } else if (isYesterday(expenseDate)) {
+        dateGroup = "Yesterday";
+      } else {
+        dateGroup = format(expenseDate, "MMM d, yyyy");
+      }
+      
+      if (!groups[dateGroup]) {
+        groups[dateGroup] = [];
+      }
+      groups[dateGroup].push(expense);
+      return groups;
+    }, {});
+  };
+  
 
   return (
     <div className="flex mt-16">
@@ -190,13 +173,17 @@ const ExpenseTrackingPage = () => {
         <div className="mt-4">
   <h3 className="text-lg font-bold text-gray-700">Latest Activity</h3>
   {expenses.length > 0 ? (
-    <div className="space-y-4 mt-2">
-      {/* Group expenses by date if needed */}
-      {expenses.map((expense) => (
-        <div key={expense.expensesRecordId} className="">
-          <ExpenseRecordCard
-                expenseRecord={expense}
-              />
+    <div className="space-y-6 mt-2">
+      {Object.entries(groupExpensesByDate(expenses)).map(([dateGroup, groupExpenses]) => (
+        <div key={dateGroup} className="space-y-2">
+          <h4 className="text-sm font-medium text-gray-500">{dateGroup}</h4>
+          <div className="space-y-2">
+            {groupExpenses.map((expense) => (
+              <div key={expense.expensesrecordid}>
+                <ExpenseRecordCard expenseRecord={expense} />
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>
@@ -204,16 +191,32 @@ const ExpenseTrackingPage = () => {
     <p className="text-gray-500">No expenses recorded for this trip.</p>
   )}
 </div>
-
       </div>
 
       {/* Right section for expense tracking */}
       {selectedTrip && (
-        <div className="w-3/5 p-4">
-          <h2 className="text-3xl font-bold">Expense Tracking</h2>
-          <div className="w-[40%] max-w-screen-md mx-4 mt-8 text-center">
-            {data.labels && <Pie data={data} />}
-          </div>
+        <div className="w-3/4 p-4">
+          <h2 className="text-3xl font-bold mb-6">Expense Tracking</h2>
+          
+          {expenses.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Pie Chart */}
+              <div className="p-4 rounded-lg">
+                <ExpensePieChart expenses={expenses} />
+              </div>
+              
+              {/* Bar Chart */}
+              <div className="p-4 rounded-lg">
+                <ExpenseBarChart expenses={expenses} totalExpense={totalExpense} />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-lg shadow text-center">
+              <p className="text-lg text-gray-600">
+                No expense data available. Add some expenses to see charts.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
