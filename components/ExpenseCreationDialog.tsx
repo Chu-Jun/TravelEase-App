@@ -3,7 +3,7 @@
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,19 +27,26 @@ const formSchema = z.object({
 export default function ExpenseCreationDialog({tripData}: any) {
     const { toast } = useToast();
     const router = useRouter();
-
     const [open, setOpen] = useState(false);
-
+    
+    // Initialize form with the current tripData
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            tripid: tripData.tripid,
+            tripid: tripData?.tripid || "",
             date: "",
             amountspent: "",
             category: "",
             remarks: "",
         },
     });
+    
+    // This effect updates the form's tripid value when tripData changes
+    useEffect(() => {
+        if (tripData && tripData.tripid) {
+            form.setValue("tripid", tripData.tripid);
+        }
+    }, [tripData, form]);
 
     async function onSubmit(values: any) {
         const result = await createExpenseAction(values);
