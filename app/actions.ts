@@ -726,7 +726,7 @@ export const createExpenseAction = async (formData: any) => {
 
 export const getExpenses = async (tripId: any) => {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("expenserecord").select("*").eq("tripid", tripId);
+  const { data, error } = await supabase.from("expenserecord").select("*").eq("tripid", tripId).order("date", { ascending: false })
 
   if (error) {
     console.error("Error fetching expense records: ", error);
