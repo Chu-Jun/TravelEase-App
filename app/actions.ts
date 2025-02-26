@@ -944,6 +944,36 @@ export const editAccommodationBookingAction = async (formData: any) => {
   }
 }
 
+export async function deleteAccommodationAction(accBookingId: any) {
+  try {
+      const supabase = await createClient()
+
+      const { error: deletionError } = await supabase
+          .from("accommodationbooking")
+          .delete()
+          .eq("accbookingid", accBookingId)
+
+      if (deletionError) {
+          console.error("Error deleting selected record:", deletionError, accBookingId)
+          return {
+              status: "error",
+              message: "Failed to delete selected record."
+          }
+      }
+
+      return {
+          status: "success",
+          message: "Record deleted successfully"
+      }
+  } catch (error) {
+      console.error("Delete record error:", error)
+      return {
+          status: "error",
+          message: "An unexpected error occurred"
+      }
+  }
+}
+
 export const createFlightBookingAction = async (formData: any) => {
 
   const supabase = await createClient();
@@ -1025,6 +1055,36 @@ export const editFlightBookingAction = async (formData: any) => {
       status: "success",
       message: "Flight Booking Record Updated",
     };
+  }
+}
+
+export async function deleteFlightAction(flightBookingId: any) {
+  try {
+      const supabase = await createClient()
+
+      const { error: deletionError } = await supabase
+          .from("flightbooking")
+          .delete()
+          .eq("flightbookingid", flightBookingId)
+
+      if (deletionError) {
+          console.error("Error deleting selected record:", deletionError, flightBookingId)
+          return {
+              status: "error",
+              message: "Failed to delete selected record."
+          }
+      }
+
+      return {
+          status: "success",
+          message: "Record deleted successfully"
+      }
+  } catch (error) {
+      console.error("Delete record error:", error)
+      return {
+          status: "error",
+          message: "An unexpected error occurred"
+      }
   }
 }
 
@@ -1176,3 +1236,32 @@ if (locError || !existingLocation || existingLocation.length === 0) {
   }
 }
 
+export async function deleteActivityAction(activityBookingId: any) {
+  try {
+      const supabase = await createClient()
+
+      const { error: deletionError } = await supabase
+          .from("activitybooking")
+          .delete()
+          .eq("activitybookingid", activityBookingId)
+
+      if (deletionError) {
+          console.error("Error deleting selected record:", deletionError, activityBookingId)
+          return {
+              status: "error",
+              message: "Failed to delete selected record."
+          }
+      }
+
+      return {
+          status: "success",
+          message: "Record deleted successfully"
+      }
+  } catch (error) {
+      console.error("Delete record error:", error)
+      return {
+          status: "error",
+          message: "An unexpected error occurred"
+      }
+  }
+}

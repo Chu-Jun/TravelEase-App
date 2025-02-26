@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu";
   import BookingEditDialog from "@/components/BookingEditDialog";
+  import BookingDeletionDialog from "@/components/BookingDeletionDialog";
 
 interface Location {
     id: string;
@@ -29,6 +30,7 @@ interface ActivityBooking {
 
 const ActivityCard = ({ booking }: { booking: ActivityBooking }) => {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const formatDate = (dateString: string) => {
         try {
@@ -54,21 +56,21 @@ const ActivityCard = ({ booking }: { booking: ActivityBooking }) => {
                 e.preventDefault();
                 setEditDialogOpen(true);
             }}>
-                Edit Trip
+                Edit Activity
             </DropdownMenuItem>
-            {/* <DropdownMenuItem onSelect={(e) => {
+            <DropdownMenuItem onSelect={(e) => {
                 e.preventDefault();
                 setDeleteDialogOpen(true);
             }}>
-                Delete Trip
-            </DropdownMenuItem> */}
+                Delete Activity
+            </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
 
         <div className="invisible absolute bottom-0 left-0">
             {/* Render the dialogs separately, controlled by state */}
             <BookingEditDialog bookingData={booking} open={editDialogOpen} onOpenChange={setEditDialogOpen} bookingType={"activity"}/>
-            {/* <TripDeletionDialog tripData={trip} open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} /> */}
+            <BookingDeletionDialog bookingData={booking} open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} bookingType={"activity"}/>
         </div>
         </CardHeader>
         <CardContent className="pt-4 grid grid-cols-2 gap-2">
