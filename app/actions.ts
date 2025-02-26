@@ -802,3 +802,217 @@ export async function deleteExpenseAction(expensesRecordId: any) {
       }
   }
 }
+
+export const createAccommodationBookingAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  const tripid = formData.tripid as string;
+  const accommodationname = formData.accommodationName as string;
+  const checkindate = formData.checkInDate as string;
+  const checkoutdate = formData.checkOutDate as string;
+      
+      // Check if location exists
+      const { data: existingLocation, error: locError } = await supabase
+        .from("location")
+        .select("locationid")
+        .eq("locationname", accommodationname.trim())
+        .limit(1);
+      
+      let locationId;
+      
+      // Create location if it doesn't exist
+      if (locError || !existingLocation || existingLocation.length === 0) {
+        const newLocationId = uuidv4();
+        const { data: newLocation, error: createError } = await supabase
+          .from("location")
+          .insert({
+            locationid: newLocationId,
+            locationname: accommodationname.trim(),
+            locationcoordinate: '0,0' // Default coordinates
+          })
+          .select();
+        
+        if (createError) {
+          throw new Error('Unable to create new location' + createError.message);
+        }
+        
+        locationId = newLocationId;
+      } else {
+        locationId = existingLocation[0].locationid;
+      }
+
+  const { data, error } = await supabase
+    .from("accommodationbooking")
+    .insert({
+      tripid: tripid,
+      accommodationname: accommodationname,
+      checkindate: checkindate,
+      checkoutdate: checkoutdate,
+      locationid: locationId,
+    });
+
+  if (error) {
+    return {
+      status: "error",
+      message: error.message + "Could not create booking record",
+    };
+  } else {
+    return {
+      status: "success",
+      message: "Accommodation Booking Record Created",
+    };
+  }
+}
+
+export const getAccommodationBookings = async (tripId: any) => {
+  const supabase = await createClient();
+  const { data, error } = 
+  await supabase.from("accommodationbooking")
+  .select(`
+    *,
+    location ( locationid, locationname )
+  `)
+                .eq("tripid", tripId)
+                .order("checkindate", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching accommodation booking records: ", error);
+    return [];
+  }
+
+  return data;
+};
+
+export const createFlightBookingAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  const tripid = formData.tripid as string;
+  const flightdate = formData.flightDate as string;
+  const flightcode = formData.flightCode as string;
+  const airline = formData.airline as string;
+  const departairport = formData.departAirport as string;
+  const arriveairport = formData.arriveAirport as string;
+
+  const { data, error } = await supabase
+    .from("flightbooking")
+    .insert({
+      tripid: tripid,
+      flightdate: flightdate,
+      flightcode: flightcode,
+      airline: airline,
+      departairport: departairport,
+      arriveairport: arriveairport,
+    });
+
+  if (error) {
+    return {
+      status: "error",
+      message: error.message + "Could not create booking record",
+    };
+  } else {
+    return {
+      status: "success",
+      message: "Flight Booking Record Created",
+    };
+  }
+}
+
+export const getFlightBookings = async (tripId: any) => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("flightbooking").select("*").eq("tripid", tripId).order("flightdate", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching flight booking records: ", error);
+    return [];
+  }
+
+  return data;
+};
+
+export const createActivityBookingAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  console.log(formData);
+  const tripid = formData.tripid as string;
+  const activityname = formData.activityName as string;
+  const activitydate = formData.activityDate as string;
+  const starttime = formData.activityStartTime as string;
+  const endtime = formData.activityEndTime as string;
+  const activitylocationname = formData.activityLocationName as string;
+
+  // Check if location exists
+  const { data: existingLocation, error: locError } = await supabase
+  .from("location")
+  .select("locationid")
+  .eq("locationname", activitylocationname.trim())
+  .limit(1);
+
+let locationId;
+
+// Create location if it doesn't exist
+if (locError || !existingLocation || existingLocation.length === 0) {
+  const newLocationId = uuidv4();
+  const { data: newLocation, error: createError } = await supabase
+    .from("location")
+    .insert({
+      locationid: newLocationId,
+      locationname: activitylocationname.trim(),
+      locationcoordinate: '0,0' // Default coordinates
+    })
+    .select();
+  
+  if (createError) {
+    throw new Error('Unable to create new location' + createError.message);
+  }
+  
+  locationId = newLocationId;
+} else {
+  locationId = existingLocation[0].locationid;
+}
+
+  const { data, error } = await supabase
+    .from("activitybooking")
+    .insert({
+      tripid: tripid,
+      activityname: activityname,
+      activitydate: activitydate,
+      starttime: starttime,
+      endtime: endtime,
+      locationid: locationId,
+    });
+
+  if (error) {
+    return {
+      status: "error",
+      message: error.message + "Could not create booking record",
+    };
+  } else {
+    return {
+      status: "success",
+      message: "Activity Booking Record Created",
+    };
+  }
+}
+
+export const getActivityBookings = async (tripId: any) => {
+  const supabase = await createClient();
+  const { data, error } = 
+  await supabase.from("activitybooking")
+  .select(`
+    *,
+    location ( locationid, locationname )
+  `)
+  .eq("tripid", tripId)
+  .order("activitydate", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching activity booking records: ", error);
+    return [];
+  }
+
+  return data;
+};
+

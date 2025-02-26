@@ -22,7 +22,6 @@ interface Trip {
   tripid: string;
   tripname: string;
   budget: string;
-  // Add other trip properties as needed
 }
 
 interface Expense {
