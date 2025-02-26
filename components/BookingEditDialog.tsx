@@ -13,7 +13,7 @@ import * as RadioGroup from '@radix-ui/react-radio-group';
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
-import { createAccommodationBookingAction, createFlightBookingAction, createActivityBookingAction } from "@/app/actions";
+import { editAccommodationBookingAction, editFlightBookingAction, editActivityBookingAction } from "@/app/actions";
 
 const formSchema = z.object({
   tripid: z.string(),
@@ -33,33 +33,46 @@ const formSchema = z.object({
   checkOutDate: z.string().optional(),
 });
 
-export default function BookingCreationDialog({ tripData }: any) {
+export default function BookingCreationDialog({ bookingData, bookingType, open, onOpenChange}: any) {
   const { toast } = useToast();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [bookingType, setBookingType] = useState<string | undefined>(undefined);
+  const [isDialogOpen, setOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      tripid: tripData?.tripid || "",
+      tripid: bookingData?.tripid || "",
+      flightDate: bookingData?.flightdate || "",
+    flightCode: bookingData?.flightcode || "",
+    airline: bookingData?.airline || "",
+    departAirport: bookingData?.departairport || "",
+    arriveAirport: bookingData?.arriveairport || "",
+    departTime: bookingData?.departtime || "",
+    activityLocationName: bookingData.location?.locationname || "",
+    activityName: bookingData?.activityname || "",
+    activityDate: bookingData?.activitydate || "",
+    activityStartTime: bookingData?.starttime || "",
+    activityEndTime: bookingData?.endtime || "",
+    accommodationName: bookingData?.accommodationname || "",
+    checkInDate: bookingData?.checkindate || "",
+    checkOutDate: bookingData?.checkoutdate || "",
     },
   });
 
-  useEffect(() => {
-    if (tripData && tripData.tripid) {
-      form.setValue("tripid", tripData.tripid);
-    }
-  }, [tripData, form]);
-
   async function onSubmit(values: any) {
+    // Create merged object with current data and new values
+    let mergedObject;
+
     let result;
     if (bookingType === "accommodation") {
-      result = await createAccommodationBookingAction(values);
+        mergedObject = { ...values, id: bookingData?.accbookingid ?? null }
+      result = await editAccommodationBookingAction(mergedObject);
     } else if (bookingType === "flight") {
-      result = await createFlightBookingAction(values);
+        mergedObject = { ...values, id: bookingData?.flightbookingid ?? null }
+      result = await editFlightBookingAction(mergedObject);
     } else if (bookingType === "activity") {
-      result = await createActivityBookingAction(values);
+        mergedObject = { ...values, id: bookingData?.activitybookingid ?? null }
+      result = await editActivityBookingAction(mergedObject);
     } else {
         result = {status: "error", message: "Please select the booking type."}
     }
@@ -80,16 +93,16 @@ export default function BookingCreationDialog({ tripData }: any) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button className="bg-secondary text-white mt-8 md:w-1/3 md:self-center min-w-fit">
-          + Add Booking Record
+          Edit Booking Record
         </Button>
       </DialogTrigger>
       <DialogContent className="text-black w-4/5 rounded-lg">
         <DialogHeader>
           <DialogTitle>
-            <p className="text-primary font-extrabold">Add Booking Record</p>
+            <p className="text-primary font-extrabold">Edit Booking Record</p>
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -100,28 +113,6 @@ export default function BookingCreationDialog({ tripData }: any) {
             }}
             className="space-y-6"
           >
-            {/* Booking Type Selection */}
-            <FormItem>
-              <FormLabel>Select Booking Type</FormLabel>
-              <FormControl>
-              <RadioGroup.Root value={bookingType} onValueChange={setBookingType}>
-    <div className="flex space-x-4">
-      <div className="bg-primary rounded-lg p-2 text-white">
-        <RadioGroup.Item value="accommodation" id="accommodation" />
-        <label htmlFor="accommodation">Accommodation</label>
-      </div>
-      <div className="bg-primary rounded-lg p-2 text-white">
-        <RadioGroup.Item value="flight" id="flight" />
-        <label htmlFor="flight">Flight</label>
-      </div>
-      <div className="bg-primary rounded-lg p-2 text-white">
-        <RadioGroup.Item value="activity" id="activity" />
-        <label htmlFor="activity">Activity</label>
-      </div>
-    </div>
-  </RadioGroup.Root>
-              </FormControl>
-            </FormItem>
 
             {/* Common Hidden Field */}
             <FormField
@@ -245,7 +236,7 @@ export default function BookingCreationDialog({ tripData }: any) {
               </>
             )}
 
-            <Button type="submit" className="bg-secondary text-white mt-4">Add Booking</Button>
+            <Button type="submit" className="bg-secondary text-white mt-4">Edit Booking Record</Button>
           </form>
         </Form>
       </DialogContent>

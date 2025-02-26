@@ -884,6 +884,66 @@ export const getAccommodationBookings = async (tripId: any) => {
   return data;
 };
 
+export const editAccommodationBookingAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  const accommodationname = formData.accommodationName as string;
+  const checkindate = formData.checkInDate as string;
+  const checkoutdate = formData.checkOutDate as string;
+      
+      // Check if location exists
+      const { data: existingLocation, error: locError } = await supabase
+        .from("location")
+        .select("locationid")
+        .eq("locationname", accommodationname.trim())
+        .limit(1);
+      
+      let locationId;
+      
+      // Create location if it doesn't exist
+      if (locError || !existingLocation || existingLocation.length === 0) {
+        const newLocationId = uuidv4();
+        const { data: newLocation, error: createError } = await supabase
+          .from("location")
+          .insert({
+            locationid: newLocationId,
+            locationname: accommodationname.trim(),
+            locationcoordinate: '0,0' // Default coordinates
+          })
+          .select();
+        
+        if (createError) {
+          throw new Error('Unable to create new location' + createError.message);
+        }
+        
+        locationId = newLocationId;
+      } else {
+        locationId = existingLocation[0].locationid;
+      }
+
+  const { data, error } = await supabase
+    .from("accommodationbooking")
+    .update({
+      accommodationname: accommodationname,
+      checkindate: checkindate,
+      checkoutdate: checkoutdate,
+      locationid: locationId,
+    }).eq("accbookingid", formData.id);
+
+  if (error) {
+    return {
+      status: "error",
+      message: error.message + "Could not update booking record",
+    };
+  } else {
+    return {
+      status: "success",
+      message: "Accommodation Booking Record Updated",
+    };
+  }
+}
+
 export const createFlightBookingAction = async (formData: any) => {
 
   const supabase = await createClient();
@@ -894,6 +954,7 @@ export const createFlightBookingAction = async (formData: any) => {
   const airline = formData.airline as string;
   const departairport = formData.departAirport as string;
   const arriveairport = formData.arriveAirport as string;
+  const departtime = formData.departTime as string;
 
   const { data, error } = await supabase
     .from("flightbooking")
@@ -904,6 +965,7 @@ export const createFlightBookingAction = async (formData: any) => {
       airline: airline,
       departairport: departairport,
       arriveairport: arriveairport,
+      departtime: departtime,
     });
 
   if (error) {
@@ -930,6 +992,41 @@ export const getFlightBookings = async (tripId: any) => {
 
   return data;
 };
+
+export const editFlightBookingAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  const flightdate = formData.flightDate as string;
+  const flightcode = formData.flightCode as string;
+  const airline = formData.airline as string;
+  const departairport = formData.departAirport as string;
+  const arriveairport = formData.arriveAirport as string;
+  const departtime = formData.departTime as string;
+
+  const { data, error } = await supabase
+    .from("flightbooking")
+    .update({
+      flightdate: flightdate,
+      flightcode: flightcode,
+      airline: airline,
+      departairport: departairport,
+      arriveairport: arriveairport,
+      departtime: departtime,
+    }).eq("flightbookingid", formData.id);
+
+  if (error) {
+    return {
+      status: "error",
+      message: error.message + "Could not update booking record",
+    };
+  } else {
+    return {
+      status: "success",
+      message: "Flight Booking Record Updated",
+    };
+  }
+}
 
 export const createActivityBookingAction = async (formData: any) => {
 
@@ -1015,4 +1112,67 @@ export const getActivityBookings = async (tripId: any) => {
 
   return data;
 };
+
+export const editActivityBookingAction = async (formData: any) => {
+
+  const supabase = await createClient();
+
+  const activityname = formData.activityName as string;
+  const activitydate = formData.activityDate as string;
+  const starttime = formData.activityStartTime as string;
+  const endtime = formData.activityEndTime as string;
+  const activitylocationname = formData.activityLocationName as string;
+
+  // Check if location exists
+  const { data: existingLocation, error: locError } = await supabase
+  .from("location")
+  .select("locationid")
+  .eq("locationname", activitylocationname.trim())
+  .limit(1);
+
+let locationId;
+
+// Create location if it doesn't exist
+if (locError || !existingLocation || existingLocation.length === 0) {
+  const newLocationId = uuidv4();
+  const { data: newLocation, error: createError } = await supabase
+    .from("location")
+    .insert({
+      locationid: newLocationId,
+      locationname: activitylocationname.trim(),
+      locationcoordinate: '0,0' // Default coordinates
+    })
+    .select();
+  
+  if (createError) {
+    throw new Error('Unable to create new location' + createError.message);
+  }
+  
+  locationId = newLocationId;
+} else {
+  locationId = existingLocation[0].locationid;
+}
+
+  const { data, error } = await supabase
+    .from("activitybooking")
+    .update({
+      activityname: activityname,
+      activitydate: activitydate,
+      starttime: starttime,
+      endtime: endtime,
+      locationid: locationId,
+    }).eq("activitybookingid", formData.id);
+
+  if (error) {
+    return {
+      status: "error",
+      message: error.message + "Could not update booking record",
+    };
+  } else {
+    return {
+      status: "success",
+      message: "Activity Booking Record Updated",
+    };
+  }
+}
 

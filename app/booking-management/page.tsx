@@ -7,6 +7,11 @@ import TripCreationDialog from "@/components/TripCreationDialog";
 import { getTrips, getActivityBookings, getAccommodationBookings, getFlightBookings } from "@/app/actions";
 import BookingsCalendar from "@/components/BookingsCalendar";
 import BookingCreationDialog from "@/components/BookingCreationDialog";
+
+import ActivityCard from "@/components/ActivityCard";
+import AccommodationCard from "@/components/AccommodationCard";
+import FlightCard from "@/components/FlightCard";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
@@ -282,123 +287,6 @@ const BookingManagementPage = () => {
       )}
     </div>
   );
-};
-
-// Separate card components for each booking type
-const ActivityCard = ({ booking }: { booking: ActivityBooking }) => {
-  return (
-    <Card>
-      <CardHeader className="bg-blue-50 pb-2">
-        <CardTitle className="text-lg font-medium text-blue-600">
-          Activity: {booking.activityname}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-4 grid grid-cols-2 gap-2">
-        <div>
-          <p className="text-sm text-gray-500">Date</p>
-          <p>{formatDate(booking.activitydate)}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Location</p>
-          <p>{booking.location?.locationname || "Unknown location"}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Start Time</p>
-          <p>{booking.starttime}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">End Time</p>
-          <p>{booking.endtime}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-const AccommodationCard = ({ booking }: { booking: AccommodationBooking }) => {
-  return (
-    <Card>
-      <CardHeader className="bg-green-50 pb-2">
-        <CardTitle className="text-lg font-medium text-green-600">
-          Accommodation: {booking.accommodationname}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-4 grid grid-cols-2 gap-2">
-        <div>
-          <p className="text-sm text-gray-500">Check-in Date</p>
-          <p>{formatDate(booking.checkindate)}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Check-out Date</p>
-          <p>{formatDate(booking.checkoutdate)}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Location</p>
-          <p>{booking.location?.locationname || "Unknown location"}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Duration</p>
-          <p>{calculateDuration(booking.checkindate, booking.checkoutdate)}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-const FlightCard = ({ booking }: { booking: FlightBooking }) => {
-  return (
-    <Card>
-      <CardHeader className="bg-amber-50 pb-2">
-        <CardTitle className="text-lg font-medium text-amber-600">
-          Flight: {booking.flightcode} - {booking.airline}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-4 grid grid-cols-2 gap-2">
-        <div>
-          <p className="text-sm text-gray-500">Date</p>
-          <p>{formatDate(booking.flightdate)}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Departure</p>
-          <p>{booking.departairport} - {booking.departtime}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Arrival</p>
-          <p>{booking.arriveairport}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Airline</p>
-          <p>{booking.airline}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Helper functions
-const calculateDuration = (startDate: string | number | Date, endDate: string | number | Date) => {
-  if (!startDate || !endDate) return "No dates specified";
-  
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  
-  // Check if dates are valid
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-    console.error("Invalid date format:", startDate, endDate);
-    return "Invalid dates";
-  }
-  
-  const timeDiff = end.getTime() - start.getTime();
-  const days = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-  return `${days} Days`;
-};
-
-const formatDate = (dateString: string) => {
-  try {
-    return format(new Date(dateString), "dd MMM yyyy");
-  } catch (e) {
-    return dateString;
-  }
 };
 
 export default BookingManagementPage;
