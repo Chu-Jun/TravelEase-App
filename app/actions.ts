@@ -23,6 +23,48 @@ import { SupabaseClient } from "@supabase/supabase-js";
     [key: string]: string[]; 
   }
 
+  interface TripData {
+    tripstartdate: string;
+  }
+  
+  interface LocationData {
+    locationid: string;
+    locationname: string;
+    locationcoordinate: string;
+    placeid: string | null;
+    formattedaddress: string | null;
+  }
+  
+  interface LocationListData {
+    locationlistid: string;
+    location: LocationData;
+  }
+  
+  interface ItineraryItem {
+    itineraryid: string;
+    date: string;
+    locationlist: LocationListData;
+  }
+  
+  interface Marker {
+    name: string;
+    coordinate: {
+      lat: number;
+      lng: number;
+    };
+    locationId: string;
+    placeId: string | null;
+    formattedAddress: string | null;
+  }
+  
+  interface ItineraryData {
+    places: Record<
+      string,
+      { name: string; placeId: string; coordinate: { lat: number; lng: number } }[]
+    >;
+    markers: Record<string, Marker[]>;
+  }
+
 export const signUpAction = async (formData: SignUpFormValues, role: string) => {
   const email = formData.email as string;
   const password = formData.password as string;
@@ -373,9 +415,9 @@ export async function getTripById(tripId: any) {
 /**
  * Get itinerary for a specific trip
  * @param {string} tripId - The trip ID
- * @returns {Promise<Object>} - Itinerary organized by days
+ * @returns {Promise<ItineraryData>} - Itinerary organized by days
  */
-export async function getItinerary(tripId: any) {
+export async function getItinerary(tripId: string): Promise<ItineraryData> {
   const supabase = await createClient();
   
   try {
@@ -388,7 +430,7 @@ export async function getItinerary(tripId: any) {
     
     if (tripError) {
       console.error("Error fetching trip for itinerary:", tripError);
-      return {};
+      return { places: {}, markers: {} };
     }
     
     // Fetch itinerary data with joins
@@ -399,7 +441,7 @@ export async function getItinerary(tripId: any) {
         date,
         locationlist(
           locationlistid,
-          location(locationid, locationname, locationcoordinate)
+          location(locationid, locationname, locationcoordinate, placeid, formattedaddress)
         )
       `)
       .eq("tripid", tripId)
@@ -407,48 +449,89 @@ export async function getItinerary(tripId: any) {
     
     if (error) {
       console.error("Error fetching itinerary:", error);
-      return {};
+      return { places: {}, markers: {} };
     }
     
     // Organize by day
-    const tripStartDate = new Date(tripData.tripstartdate);
-    const itinerary: Itinerary = {};
+    const tripStartDate = new Date((tripData as TripData).tripstartdate);
+    const itinerary: Record<string, { name: string; placeId: string; coordinate: { lat: number; lng: number } }[]> = {};
+    const markers: Record<string, Marker[]> = {};
     
-    data.forEach(item => {
+    (data as unknown as ItineraryItem[]).forEach(item => {
       // Calculate day number
       const currentDate = new Date(item.date);
-      
-
       const diffTime = Math.abs(currentDate.getTime() - tripStartDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       const dayLabel = `Day ${diffDays + 1}`;
       
       if (!itinerary[dayLabel]) {
         itinerary[dayLabel] = [];
+        markers[dayLabel] = [];
       }
-      console.log("Itinerary is " + JSON.stringify(item.locationlist, null, 2));
-      // Add location name to the day's itinerary
-      if ((item.locationlist as any)?.location?.locationname) {
-        itinerary[dayLabel].push((item.locationlist as any).location.locationname);
+      
+      // Get location info
+      const locationData = item.locationlist?.location;
+      
+      if (locationData?.locationname) {
+
+        // Ensure `itinerary[dayLabel]` is initialized as an array of objects
+        if (!itinerary[dayLabel]) {
+          itinerary[dayLabel] = [];
+        }
+
+        const placeObj = {
+          name: locationData.locationname,
+          placeId: locationData.placeid || "",
+          coordinate: {
+            lat: parseFloat(locationData.locationcoordinate?.split(',')[0]) || 0,
+            lng: parseFloat(locationData.locationcoordinate?.split(',')[1]) || 0
+          }
+        };
+      
+        itinerary[dayLabel].push(placeObj);
+        
+        // Process coordinates
+        if (locationData.locationcoordinate) {
+          const [lat, lng] = locationData.locationcoordinate.split(',').map(Number);
+          
+          // Only add valid coordinates to markers
+          if (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)) {
+            markers[dayLabel].push({
+              name: locationData.locationname,
+              coordinate: { lat, lng },
+              locationId: locationData.locationid,
+              placeId: locationData.placeid,
+              formattedAddress: locationData.formattedaddress
+            });
+          }
+        }
       }
     });
     
     // Ensure all days have at least an empty array
     const tripEndDate = await getEndDate(tripId, supabase);
     if (tripEndDate) {
-      const totalDays = getDaysBetween(tripData.tripstartdate, tripEndDate);
+      const totalDays = getDaysBetween((tripData as TripData).tripstartdate, tripEndDate);
       for (let i = 1; i <= totalDays; i++) {
         const dayLabel = `Day ${i}`;
         if (!itinerary[dayLabel]) {
-          itinerary[dayLabel] = [""];
+          itinerary[dayLabel] = [];
+          markers[dayLabel] = [];
         }
       }
     }
     
-    return itinerary;
+    // Return both the itinerary and markers
+    return {
+      places: itinerary,
+      markers: markers
+    };
   } catch (error) {
     console.error("Unexpected error in getItinerary:", error);
-    return {};
+    return {
+      places: {},
+      markers: {}
+    };
   }
 }
 
@@ -479,10 +562,10 @@ function getDaysBetween(startDate: string | number | Date, endDate: string | num
  * Create or update itinerary for a specific day
  * @param {string} tripId - The trip ID
  * @param {string} dayLabel - Day label (e.g., "Day 1")
- * @param {Array<string>} places - Array of place names
+ * @param {Array<Object>} places - Array of place objects
  * @returns {Promise<Object>} - Updated itinerary or error message
  */
-export async function saveItineraryDay(tripId: any, dayLabel: string, places: any) {
+export async function saveItineraryDay(tripId: string, dayLabel: string, places: any) {
   const supabase = await createClient();
   
   try {
@@ -526,13 +609,21 @@ export async function saveItineraryDay(tripId: any, dayLabel: string, places: an
     
     // Step 5: Process each place
     for (const place of places) {
-      if (!place.trim()) continue; // Skip empty places
+      if (!place || (typeof place === 'string' && !place.trim())) continue; // Skip empty places
       
-      // Step 5a: Check if location exists
+      // Check if we're dealing with a string or an object
+      const placeName = typeof place === 'string' ? place.trim() : place.name.trim();
+      const coordinates = typeof place === 'string' 
+        ? '0,0' // Default for string values (backwards compatibility)
+        : `${place.coordinate.lat},${place.coordinate.lng}`;
+      
+      if (!placeName) continue; // Skip if no name
+      
+      // Step 5a: Check if location exists with the same name
       const { data: existingLocation, error: locError } = await supabase
         .from("location")
         .select("locationid")
-        .eq("locationname", place.trim())
+        .eq("locationname", placeName)
         .limit(1);
       
       let locationId;
@@ -544,18 +635,37 @@ export async function saveItineraryDay(tripId: any, dayLabel: string, places: an
           .from("location")
           .insert({
             locationid: newLocationId,
-            locationname: place.trim(),
-            locationcoordinate: '0,0' // Default coordinates
+            locationname: placeName,
+            locationcoordinate: coordinates,
+            placeid: typeof place === 'string' ? null : place.placeId || null,
+            formattedaddress: typeof place === 'string' ? null : place.formattedAddress || null
           })
           .select();
         
         if (createError) {
-          throw new Error('Unable to create new location' + createError.message);
+          throw new Error('Unable to create new location: ' + createError.message);
         }
         
         locationId = newLocationId;
       } else {
-        locationId = existingLocation[0].locationid;
+        // Update the existing location with new coordinates if we have them
+        if (coordinates !== '0,0') {
+          locationId = existingLocation[0].locationid;
+          const { error: updateError } = await supabase
+            .from("location")
+            .update({
+              locationcoordinate: coordinates,
+              placeid: typeof place === 'string' ? null : place.placeId || null,
+              formattedaddress: typeof place === 'string' ? null : place.formattedAddress || null
+            })
+            .eq("locationid", locationId);
+            
+          if (updateError) {
+            console.error("Error updating location coordinates:", updateError);
+          }
+        } else {
+          locationId = existingLocation[0].locationid;
+        }
       }
       
       // Step 5c: Create location list entry
@@ -601,7 +711,7 @@ export async function saveItineraryDay(tripId: any, dayLabel: string, places: an
     
     // For non-standard errors
     return { error: "Failed to save itinerary: " + String(error) };
-}
+  }
 }
 
 /**

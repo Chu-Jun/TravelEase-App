@@ -5,9 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faLocationDot, 
   faChevronRight, 
-  faChevronDown, 
-  faArrowUp, 
-  faArrowDown,
+  faChevronDown,
   faSave
 } from "@fortawesome/free-solid-svg-icons";
 import { useParams } from "next/navigation";
@@ -16,6 +14,8 @@ import {
   getItinerary, 
   saveItineraryDay 
 } from "@/app/actions";
+import LocationPicker from "@/components/LocationPicker";
+import MapDisplay from "@/components/MapDisplay";
 
 const generateDays = (startDate, endDate) => {
   if (!startDate || !endDate) return [];
@@ -41,12 +41,13 @@ const TravelEaseItineraryPage = () => {
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState([]);
-  const [itinerary, setItinerary] = useState({});
-  const [editedItinerary, setEditedItinerary] = useState({});
+  const [itinerary, setItinerary] = useState({ places: {}, markers: {} });
+  const [editedItinerary, setEditedItinerary] = useState({ places: {}, markers: {} });
   const [collapsedSections, setCollapsedSections] = useState({});
   const [hasChanges, setHasChanges] = useState({});
   const [savingDay, setSavingDay] = useState(null);
   const [error, setError] = useState(null);
+  const [activeDay, setActiveDay] = useState(null);
 
   // Fetch trip and itinerary data
   useEffect(() => {
@@ -71,14 +72,37 @@ const TravelEaseItineraryPage = () => {
         const generatedDays = generateDays(selectedTrip.tripstartdate, selectedTrip.tripenddate);
         setDays(generatedDays);
         
+        // Set initial active day to Day 1
+        if (generatedDays.length > 0) {
+          setActiveDay(generatedDays[0].label);
+        }
+        
         // Fetch itinerary data
         const fetchedItinerary = await getItinerary(slug);
-        console.log(fetchedItinerary);
+        console.log("Fetched itinerary data:", fetchedItinerary);
+        
         if (fetchedItinerary.error) {
           setError(fetchedItinerary.error);
         } else {
-          setItinerary(fetchedItinerary);
-          setEditedItinerary(JSON.parse(JSON.stringify(fetchedItinerary)));
+          // Initialize empty places for each day if they don't exist
+          const initialItinerary = { ...fetchedItinerary };
+          if (!initialItinerary.places) initialItinerary.places = {};
+          if (!initialItinerary.markers) initialItinerary.markers = {};
+          
+          // Ensure each day has an entry in places
+          generatedDays.forEach(day => {
+            if (!initialItinerary.places[day.label]) {
+              initialItinerary.places[day.label] = [""];
+            }
+            if (!initialItinerary.markers[day.label]) {
+              initialItinerary.markers[day.label] = [];
+            }
+            console.log("Places for", day.label, initialItinerary.places[day.label]);
+          });
+          
+          setItinerary(initialItinerary);
+          setEditedItinerary(JSON.parse(JSON.stringify(initialItinerary)));
+          
         }
       } catch (err) {
         setError("Error loading trip data: " + err.message);
@@ -91,55 +115,104 @@ const TravelEaseItineraryPage = () => {
     fetchTripData();
   }, [slug]);
 
-  // Function to handle input field changes
-  const handlePlaceChange = (day, index, value) => {
+  useEffect(() => {
+    if (itinerary) {
+      setEditedItinerary(JSON.parse(JSON.stringify(itinerary)));
+    }
+  }, [itinerary]);
+
+  // Function to process places from the LocationPicker component
+  const handlePlacesChange = (day, updatedPlaces) => {
     setEditedItinerary((prev) => {
-      const dayPlaces = [...(prev[day] || [""])];
-      dayPlaces[index] = value;
+      // Create a deep copy of the previous state
+      const newItinerary = JSON.parse(JSON.stringify(prev));
+      
+      // Ensure places object exists
+      if (!newItinerary.places) newItinerary.places = {};
+      
+      // Update places
+      newItinerary.places = {
+        ...newItinerary.places,
+        [day]: updatedPlaces
+      };
+      
+      // Ensure markers object exists
+      if (!newItinerary.markers) newItinerary.markers = {};
+      
+      // Update markers based on place objects
+      newItinerary.markers = {
+        ...newItinerary.markers,
+        [day]: updatedPlaces
+          .filter(place => 
+            typeof 
+            place !== null && 
+            place.coordinate &&
+            (place.coordinate.lat !== 0 || place.coordinate.lng !== 0)
+          )
+          .map(place => ({
+            name: place.name,
+            coordinate: place.coordinate,
+            formattedAddress: place.formattedAddress,
+            placeId: place.placeId
+          }))
+      };
       
       // Update has changes status
-      const originalValue = itinerary[day]?.[index] || "";
-      const dayHasChanges = originalValue !== value || 
-        JSON.stringify(prev[day]) !== JSON.stringify(itinerary[day]);
-      
       setHasChanges(prevChanges => ({
         ...prevChanges,
-        [day]: dayHasChanges
+        [day]: true
       }));
       
-      return {
-        ...prev,
-        [day]: dayPlaces
-      };
+      return newItinerary;
     });
   };
 
   // Function to add a new place
   const addPlace = (day) => {
     setEditedItinerary((prev) => {
-      const dayPlaces = [...(prev[day] || []), ""];
+      const newItinerary = JSON.parse(JSON.stringify(prev));
+      
+      // Initialize places object if it doesn't exist
+      if (!newItinerary.places) newItinerary.places = {};
+      
+      // Initialize day if it doesn't exist
+      if (!newItinerary.places[day]) {
+        newItinerary.places[day] = [];
+      }
+      
+      newItinerary.places[day] = [...newItinerary.places[day], ""];
       
       setHasChanges(prevChanges => ({
         ...prevChanges,
         [day]: true
       }));
       
-      return {
-        ...prev,
-        [day]: dayPlaces
-      };
+      return newItinerary;
     });
   };
 
   // Function to remove a place
   const removePlace = (day, index) => {
     setEditedItinerary((prev) => {
-      const dayPlaces = [...(prev[day] || [""])];
-      dayPlaces.splice(index, 1);
+      const newItinerary = JSON.parse(JSON.stringify(prev));
       
-      // If all places are removed, add an empty one
-      if (dayPlaces.length === 0) {
-        dayPlaces.push("");
+      // Ensure places object exists
+      if (!newItinerary.places) newItinerary.places = {};
+      
+      // Remove the place
+      if (newItinerary.places[day]) {
+        newItinerary.places[day].splice(index, 1);
+        
+        // If all places are removed, add an empty one
+        if (newItinerary.places[day].length === 0) {
+          newItinerary.places[day].push("");
+        }
+        
+        // Ensure markers object exists and update it
+        if (!newItinerary.markers) newItinerary.markers = {};
+        if (newItinerary.markers[day]) {
+          newItinerary.markers[day].splice(index, 1);
+        }
       }
       
       setHasChanges(prevChanges => ({
@@ -147,10 +220,7 @@ const TravelEaseItineraryPage = () => {
         [day]: true
       }));
       
-      return {
-        ...prev,
-        [day]: dayPlaces
-      };
+      return newItinerary;
     });
   };
 
@@ -159,48 +229,68 @@ const TravelEaseItineraryPage = () => {
     if (index === 0) return;
     
     setEditedItinerary((prev) => {
-      const dayPlaces = [...(prev[day] || [""])];
+      const newItinerary = JSON.parse(JSON.stringify(prev));
       
-      // Safety check for array bounds
-      if (index < 1 || index >= dayPlaces.length) return prev;
+      // Ensure places object exists
+      if (!newItinerary.places) newItinerary.places = {};
       
-      const temp = dayPlaces[index];
-      dayPlaces[index] = dayPlaces[index - 1];
-      dayPlaces[index - 1] = temp;
+      // Swap places
+      if (newItinerary.places[day]) {
+        const temp = newItinerary.places[day][index];
+        newItinerary.places[day][index] = newItinerary.places[day][index - 1];
+        newItinerary.places[day][index - 1] = temp;
+      }
+      
+      // Ensure markers object exists and update it
+      if (!newItinerary.markers) newItinerary.markers = {};
+      if (newItinerary.markers[day] && 
+          newItinerary.markers[day][index] && 
+          newItinerary.markers[day][index - 1]) {
+        const temp = newItinerary.markers[day][index];
+        newItinerary.markers[day][index] = newItinerary.markers[day][index - 1];
+        newItinerary.markers[day][index - 1] = temp;
+      }
       
       setHasChanges(prevChanges => ({
         ...prevChanges,
         [day]: true
       }));
       
-      return {
-        ...prev,
-        [day]: dayPlaces
-      };
+      return newItinerary;
     });
   };
 
   // Function to move a place down
   const moveDown = (day, index) => {
     setEditedItinerary((prev) => {
-      const dayPlaces = [...(prev[day] || [""])];
+      const newItinerary = JSON.parse(JSON.stringify(prev));
       
-      // Safety check for array bounds
-      if (index < 0 || index >= dayPlaces.length - 1) return prev;
+      // Ensure places object exists
+      if (!newItinerary.places) newItinerary.places = {};
       
-      const temp = dayPlaces[index];
-      dayPlaces[index] = dayPlaces[index + 1];
-      dayPlaces[index + 1] = temp;
+      // Swap places
+      if (newItinerary.places[day] && index < newItinerary.places[day].length - 1) {
+        const temp = newItinerary.places[day][index];
+        newItinerary.places[day][index] = newItinerary.places[day][index + 1];
+        newItinerary.places[day][index + 1] = temp;
+      }
+      
+      // Ensure markers object exists and update it
+      if (!newItinerary.markers) newItinerary.markers = {};
+      if (newItinerary.markers[day] && 
+          newItinerary.markers[day][index] && 
+          newItinerary.markers[day][index + 1]) {
+        const temp = newItinerary.markers[day][index];
+        newItinerary.markers[day][index] = newItinerary.markers[day][index + 1];
+        newItinerary.markers[day][index + 1] = temp;
+      }
       
       setHasChanges(prevChanges => ({
         ...prevChanges,
         [day]: true
       }));
       
-      return {
-        ...prev,
-        [day]: dayPlaces
-      };
+      return newItinerary;
     });
   };
 
@@ -210,11 +300,10 @@ const TravelEaseItineraryPage = () => {
       setSavingDay(day);
       setError(null);
       
-      // Filter out empty places
-      const updatedPlaces = (editedItinerary[day] || []).filter(place => place.trim() !== "");
-      
-      // If all places were empty, add one empty place back
-      const placesToSave = updatedPlaces.length > 0 ? updatedPlaces : [""];
+      // Ensure places exist for this day
+      const placesToSave = editedItinerary.places && editedItinerary.places[day] 
+        ? editedItinerary.places[day] 
+        : [""];
       
       // Save to database
       const result = await saveItineraryDay(slug, day, placesToSave);
@@ -222,16 +311,9 @@ const TravelEaseItineraryPage = () => {
       if (result.error) {
         setError(result.error);
       } else {
-        // Update local state
-        setItinerary(prev => ({
-          ...prev,
-          [day]: result[day] || [""]
-        }));
-        
-        setEditedItinerary(prev => ({
-          ...prev,
-          [day]: result[day] || [""]
-        }));
+        // Update local state with data returned from server
+        setItinerary(result);
+        setEditedItinerary(JSON.parse(JSON.stringify(result)));
         
         setHasChanges(prev => ({
           ...prev,
@@ -247,6 +329,10 @@ const TravelEaseItineraryPage = () => {
   };
 
   const toggleSection = (dayLabel) => {
+    // Set this day as active for the map display
+    setActiveDay(dayLabel);
+    
+    // Toggle collapsed state
     setCollapsedSections((prevState) => ({
       ...prevState,
       [dayLabel]: !prevState[dayLabel],
@@ -288,6 +374,7 @@ const TravelEaseItineraryPage = () => {
 
   return (
     <div className="flex h-screen mt-16">
+      {/* Sidebar */}
       <div className="w-1/4 bg-gray-100 p-4">
         <ul className="space-y-4">
           <li className="text-gray-800 font-semibold">Overview</li>
@@ -297,7 +384,9 @@ const TravelEaseItineraryPage = () => {
               {days.map((day) => (
                 <li
                   key={day.label}
-                  className="cursor-pointer hover:text-blue-500 transition-colors"
+                  className={`cursor-pointer hover:text-blue-500 transition-colors ${
+                    day.label === activeDay ? "text-blue-600 font-medium" : ""
+                  }`}
                   onClick={() => toggleSection(day.label)}
                 >
                   {day.label}
@@ -309,105 +398,83 @@ const TravelEaseItineraryPage = () => {
         </ul>
       </div>
 
-      <div className="w-3/4 p-6 overflow-y-visible">
-        <h2 className="text-2xl font-bold mb-4">Itinerary for {trip.tripname}</h2>
+      {/* Main content */}
+      <div className="w-3/4 flex flex-col h-full">
+        <h2 className="text-2xl font-bold p-6 pb-2">Itinerary for {trip.tripname}</h2>
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mx-6 mb-2">
             {error}
           </div>
         )}
-        {days.map((day) => (
-          <div key={day.label} className="mb-6 border rounded-lg p-4 shadow-sm">
-            <h3
-              className="font-bold text-lg flex items-center justify-between cursor-pointer"
-              onClick={() => toggleSection(day.label)}
-            >
-              <span>{`${day.label} – ${day.date.toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}`}</span>
-              <FontAwesomeIcon
-                icon={collapsedSections[day.label] ? faChevronRight : faChevronDown}
-                className="text-gray-500"
-              />
-            </h3>
-            {!collapsedSections[day.label] && (
-              <div className="mt-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-medium">Places to Visit</h4>
-                  {hasChanges[day.label] && (
-                    <button 
-                      onClick={() => saveChanges(day.label)}
-                      disabled={savingDay === day.label}
-                      className={`${
-                        savingDay === day.label ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'
-                      } text-white px-3 py-1 rounded-md flex items-center gap-1 text-sm transition-colors`}
-                    >
-                      <FontAwesomeIcon icon={faSave} />
-                      {savingDay === day.label ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  )}
-                </div>
-                
-                {(editedItinerary[day.label] || [""]).map((place, index) => (
-                  <div key={index} className="flex items-center gap-2 mb-2">
-                    <FontAwesomeIcon
-                      icon={faLocationDot}
-                      className="text-gray-400 text-lg min-w-4"
-                    />
-                    <input
-                      type="text"
-                      value={place}
-                      onChange={(e) => handlePlaceChange(day.label, index, e.target.value)}
-                      className="flex-grow border rounded-md p-2"
-                      placeholder="Add Place"
-                      aria-describedby={`place-description-${day.label}-${index}`}
-                    />
-                    <div className="flex gap-1">
-                      <button 
-                        onClick={() => moveUp(day.label, index)}
-                        disabled={index === 0}
-                        className={`p-1 rounded ${index === 0 ? 'text-gray-300' : 'text-blue-500 hover:bg-blue-100'}`}
-                        title="Move Up"
-                        aria-label="Move place up"
-                      >
-                        <FontAwesomeIcon icon={faArrowUp} />
-                      </button>
-                      <button 
-                        onClick={() => moveDown(day.label, index)}
-                        disabled={index === (editedItinerary[day.label] || []).length - 1}
-                        className={`p-1 rounded ${index === (editedItinerary[day.label] || []).length - 1 ? 'text-gray-300' : 'text-blue-500 hover:bg-blue-100'}`}
-                        title="Move Down"
-                        aria-label="Move place down"
-                      >
-                        <FontAwesomeIcon icon={faArrowDown} />
-                      </button>
-                      <button 
-                        onClick={() => removePlace(day.label, index)}
-                        className="p-1 rounded text-red-500 hover:bg-red-100"
-                        title="Remove"
-                        aria-label="Remove place"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    <span id={`place-description-${day.label}-${index}`} className="sr-only">
-                      Enter place to visit for {day.label}
-                    </span>
-                  </div>
-                ))}
-                
-                <button 
-                  onClick={() => addPlace(day.label)}
-                  className="mt-2 text-blue-500 hover:text-blue-700 flex items-center gap-1"
+        
+        {/* Split view: itinerary and map */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left side: Itinerary */}
+          <div className="w-1/2 p-6 overflow-y-auto">
+            {days.map((day) => (
+              <div 
+                key={day.label} 
+                className={`mb-6 border rounded-lg p-4 shadow-sm ${
+                  day.label === activeDay ? "border-blue-500" : ""
+                }`}
+              >
+                <h3
+                  className="font-bold text-lg flex items-center justify-between cursor-pointer"
+                  onClick={() => toggleSection(day.label)}
                 >
-                  + Add another place
-                </button>
+                  <span>{`${day.label} – ${day.date.toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })}`}</span>
+                  <FontAwesomeIcon
+                    icon={collapsedSections[day.label] ? faChevronRight : faChevronDown}
+                    className="text-gray-500"
+                  />
+                </h3>
+                {!collapsedSections[day.label] && (
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-medium">Places to Visit</h4>
+                      {hasChanges[day.label] && (
+                        <button 
+                          onClick={() => saveChanges(day.label)}
+                          disabled={savingDay === day.label}
+                          className={`${
+                            savingDay === day.label ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'
+                          } text-white px-3 py-1 rounded-md flex items-center gap-1 text-sm transition-colors`}
+                        >
+                          <FontAwesomeIcon icon={faSave} />
+                          {savingDay === day.label ? 'Saving...' : 'Save Changes'}
+                        </button>
+                      )}
+                    </div>
+                    
+                    <LocationPicker
+                      places={(editedItinerary.places && editedItinerary.places[day.label]) || [""]}
+                      onPlacesChange={handlePlacesChange}
+                      dayLabel={day.label}
+                      onMoveUp={moveUp}
+                      onMoveDown={moveDown}
+                      onRemovePlace={removePlace}
+                      onAddPlace={addPlace}
+                    />
+                  </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
-        ))}
+          
+          {/* Right side: Map */}
+          <div className="w-1/2 p-6">
+            <div className="border rounded-lg h-full overflow-hidden shadow-sm">
+              <MapDisplay
+                itineraryData={editedItinerary}
+                activeDay={activeDay}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
