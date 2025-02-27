@@ -623,11 +623,21 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
     
     // Step 5: Process each place
     for (const place of places) {
+
       if (!place || (typeof place === 'string' && !place.trim())) continue; // Skip empty places
       const placeName = typeof place === 'string' ? place.trim() : place.name.trim();
-      const coordinates = typeof place === 'string' 
-        ? '0,0' 
-        : `${place.coordinate.lat},${place.coordinate.lng}`;
+      const coordinates = typeof place === 'string'
+  ? '0,0'
+  : (
+      place && 
+      typeof place === 'object' && 
+      place.coordinate && 
+      typeof place.coordinate === 'object' && 
+      typeof place.coordinate.lat === 'number' && 
+      typeof place.coordinate.lng === 'number'
+    ) 
+      ? `${place.coordinate.lat},${place.coordinate.lng}`
+      : '0,0';
       
       if (!placeName) continue; // Skip if no name
       
@@ -659,6 +669,7 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
         }
         
         locationId = newLocationId;
+
       } else {
         // Update the existing location with new coordinates if we have them
         if (coordinates !== '0,0') {

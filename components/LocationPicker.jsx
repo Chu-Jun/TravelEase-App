@@ -2,7 +2,6 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { APIProvider } from '@vis.gl/react-google-maps';
-import { PlacePicker } from '@googlemaps/extended-component-library/react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLocationDot, faArrowUp, faArrowDown, faSearch } from "@fortawesome/free-solid-svg-icons";
 
@@ -20,34 +19,44 @@ const LocationPicker = ({
 }) => {
   const pickerRefs = useRef([]);
   const [selectedPlaces, setSelectedPlaces] = useState(places.length > 0 ? [...places] : [""]);
+  const [PlacePicker, setPlacePicker] = useState(null); // Declare PlacePicker state
 
-useEffect(() => {
-  setSelectedPlaces(places.length > 0 ? [...places] : [""]); // Ensure at least one empty place picker
-  console.log("Updated selectedPlaces:", places);
-}, [JSON.stringify(places)]); // Convert to string to force change detection
+  useEffect(() => {
+    import("@googlemaps/extended-component-library/react").then((module) => {
+      setPlacePicker(() => module.PlacePicker); // Store dynamically imported component
+    });
+  }, []);
+
+  useEffect(() => {
+    console.log("Places received by LocationPicker:", JSON.stringify(places, null, 2));
+    setSelectedPlaces(places.length > 0 ? [...places] : [""]); 
+  }, [JSON.stringify(places)]);
 
   // Handle place selection
   const handlePlaceChange = (index) => {
     if (!pickerRefs.current[index]?.current?.value) return;
-
+  
     const place = pickerRefs.current[index].current.value;
-    
-    // Create a formatted place object with all required details
+    console.log("Full Place Object:", place);
+    console.log("displayName.text:", place?.displayName);
+  
+    if (!place) return; // Ensure place is defined
+  
     const placeData = {
-      name: place.displayName?.text || place.name || "",
-      placeId: place.id || "",
+      name: place?.displayName || "",  // Ensure fallback for name
+      placeId: place.place_id || place.id || "",  // Correctly access place_id
       coordinate: {
-        lat: place.location?.lat || 0,
-        lng: place.location?.lng || 0
+        lat: place?.location?.lat ? place.location.lat() : 0, // Use lat() function
+        lng: place?.location?.lng ? place.location.lng() : 0
       }
     };
-
-    // Update our local state
+  
+    console.log("Selected Place Data:", placeData); // Debugging
+  
+    // Update state and notify parent component
     const updatedPlaces = [...selectedPlaces];
     updatedPlaces[index] = placeData;
     setSelectedPlaces(updatedPlaces);
-    
-    // Notify parent component
     onPlacesChange(dayLabel, updatedPlaces);
   };
 
@@ -60,7 +69,7 @@ useEffect(() => {
           }
   
           const placeName = typeof place === 'object' && place !== null ? place.name || "" : place || "";
-  
+
           return (
             <div key={index} className="flex items-center gap-2">
               <FontAwesomeIcon icon={faLocationDot} className="text-gray-400 text-lg min-w-4" />
@@ -76,12 +85,14 @@ useEffect(() => {
                     />
                   ) : (
                     <div className="w-full relative flex items-center">
-                      <PlacePicker
-                        ref={pickerRefs.current[index]}
-                        placeholder="Search for a place"
-                        onPlaceChange={() => handlePlaceChange(index)}
-                        className="w-full"
-                      />
+                      {PlacePicker && (
+                        <PlacePicker
+                          ref={pickerRefs.current[index]}
+                          placeholder="Search for a place"
+                          onPlaceChange={() => handlePlaceChange(index)}
+                          className="w-full"
+                        />
+                      )}
                       <div className="w-10 flex items-center justify-center bg-gray-100">
                         <FontAwesomeIcon icon={faSearch} className="text-gray-500" />
                       </div>
@@ -115,7 +126,6 @@ useEffect(() => {
       </div>
     </APIProvider>
   );
-  
 };
 
 export default LocationPicker;
