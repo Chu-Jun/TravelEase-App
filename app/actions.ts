@@ -608,8 +608,21 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
       .eq("tripid", tripId)
       .eq("date", formattedDate);
     
-    // Step 4: Delete existing entries
+    // Step 4: Delete existing entries and their associations
     if (existingEntries && existingEntries.length > 0) {
+      // First, delete the associations in the itinerary_location table
+      for (const entry of existingEntries) {
+        const { error: deleteAssocError } = await supabase
+          .from("itinerary_location")
+          .delete()
+          .eq("itineraryperdayid", entry.itineraryid);
+        
+        if (deleteAssocError) {
+          throw new Error('Unable to delete existing location associations');
+        }
+      }
+      
+      // Then delete the itineraryperday entries
       const { error: deleteError } = await supabase
         .from("itineraryperday")
         .delete()
@@ -621,27 +634,41 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
       }
     }
     
-    // Step 5: Process each place
+    // Step 5: Create ONE itinerary entry for this day
+    const itineraryPerDayId = uuidv4();
+    const { error: itinError } = await supabase
+      .from("itineraryperday")
+      .insert({
+        itineraryid: itineraryPerDayId,
+        tripid: tripId,
+        date: formattedDate
+      });
+    
+    if (itinError) {
+      throw new Error('Unable to create new itinerary');
+    }
+    
+    // Step 6: Process each place and associate with the same itinerary day
     for (const place of places) {
-
       if (!place || (typeof place === 'string' && !place.trim())) continue; // Skip empty places
+      
       const placeName = typeof place === 'string' ? place.trim() : place.name.trim();
       const coordinates = typeof place === 'string'
-  ? '0,0'
-  : (
-      place && 
-      typeof place === 'object' && 
-      place.coordinate && 
-      typeof place.coordinate === 'object' && 
-      typeof place.coordinate.lat === 'number' && 
-      typeof place.coordinate.lng === 'number'
-    ) 
-      ? `${place.coordinate.lat},${place.coordinate.lng}`
-      : '0,0';
+        ? '0,0'
+        : (
+            place && 
+            typeof place === 'object' && 
+            place.coordinate && 
+            typeof place.coordinate === 'object' && 
+            typeof place.coordinate.lat === 'number' && 
+            typeof place.coordinate.lng === 'number'
+          ) 
+            ? `${place.coordinate.lat},${place.coordinate.lng}`
+            : '0,0';
       
       if (!placeName) continue; // Skip if no name
       
-      // Step 5a: Check if location exists with the same name
+      // Step 6a: Check if location exists with the same name
       const { data: existingLocation, error: locError } = await supabase
         .from("location")
         .select("locationid")
@@ -650,7 +677,7 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
       
       let locationId;
       
-      // Step 5b: Create location if it doesn't exist
+      // Step 6b: Create location if it doesn't exist
       if (locError || !existingLocation || existingLocation.length === 0) {
         const newLocationId = uuidv4();
         const { data: newLocation, error: createError } = await supabase
@@ -669,7 +696,6 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
         }
         
         locationId = newLocationId;
-
       } else {
         // Update the existing location with new coordinates if we have them
         if (coordinates !== '0,0') {
@@ -691,21 +717,8 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
         }
       }
       
-      // Step 5c: Create itinerary entry
-      const itineraryPerDayId = uuidv4();
-      const { error: itinError } = await supabase
-        .from("itineraryperday")
-        .insert({
-          itineraryid: itineraryPerDayId,
-          tripid: tripId,
-          date: formattedDate
-        });
-      
-      if (itinError) {
-        throw new Error('Unable to create new itinerary');
-      }
-      
-      // Step 5d: Create entry in the itinerary_location table
+      // Step 6c: Create entry in the itinerary_location table
+      // Associate location with the SAME itinerary day ID for all places
       const { error: itinLocError } = await supabase
         .from("itinerary_location")
         .insert({
@@ -718,10 +731,10 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
       }
     }
     
-    // Step 6: Revalidate the itinerary page
+    // Step 7: Revalidate the itinerary page
     revalidatePath(`/itinerary-planning/${tripId}`);
     
-    // Step 7: Return updated itinerary
+    // Step 8: Return updated itinerary
     return await getItinerary(tripId);
   } catch (error) {
     console.error("Error saving itinerary day:", error);
