@@ -6,7 +6,8 @@ import {
   faLocationDot, 
   faChevronRight, 
   faChevronDown,
-  faSave
+  faSave,
+  faRoute
 } from "@fortawesome/free-solid-svg-icons";
 import { useParams } from "next/navigation";
 import { 
@@ -16,6 +17,7 @@ import {
 } from "@/app/actions";
 import LocationPicker from "@/components/LocationPicker";
 import MapDisplay from "@/components/MapDisplay";
+import RouteOptimizationControls from "@/components/RouteOptimizationControls";
 
 const generateDays = (startDate, endDate) => {
   if (!startDate || !endDate) return [];
@@ -48,6 +50,8 @@ const TravelEaseItineraryPage = () => {
   const [savingDay, setSavingDay] = useState(null);
   const [error, setError] = useState(null);
   const [activeDay, setActiveDay] = useState(null);
+  const [optimizationLoading, setOptimizationLoading] = useState(false);
+  const [optimizationType, setOptimizationType] = useState("time");
 
   // Fetch trip and itinerary data
   useEffect(() => {
@@ -339,6 +343,86 @@ const TravelEaseItineraryPage = () => {
     }));
   };
 
+  // Function to optimize route
+const optimizeRoute = async (day) => {
+  try {
+    setOptimizationLoading(true);
+    
+    // Get markers for the selected day
+    const dayMarkers = editedItinerary.markers[day] || [];
+    
+    if (dayMarkers.length < 2) {
+      setError("Need at least 2 locations to optimize a route");
+      setOptimizationLoading(false);
+      return;
+    }
+    
+    // Format the data for the API
+    const requestData = {
+      locations: dayMarkers.map(marker => ({
+        name: marker.name,
+        lat: marker.coordinate.lat,
+        lng: marker.coordinate.lng
+      })),
+      optimization_type: optimizationType
+    };
+    
+    // Call the API
+    const response = await fetch('https://striking-joy-452217-j3.df.r.appspot.com/api/optimize-route', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log("Optimization result:", result);
+    
+    // Reorder places and markers based on optimized sequence
+    setEditedItinerary(prev => {
+      const newItinerary = JSON.parse(JSON.stringify(prev));
+      
+      // Create a map of place names to their full place objects
+      const placeMap = {};
+      dayMarkers.forEach((marker, index) => {
+        placeMap[marker.name] = newItinerary.places[day][index];
+      });
+      
+      // Create new arrays in optimized order
+      const optimizedPlaces = result.optimized_sequence.map(name => placeMap[name]);
+      const optimizedMarkers = result.optimized_sequence.map(name => 
+        dayMarkers.find(marker => marker.name === name)
+      );
+      
+      // Update the itinerary with optimized sequences
+      newItinerary.places[day] = optimizedPlaces;
+      newItinerary.markers[day] = optimizedMarkers;
+      
+      // Mark as changed
+      setHasChanges(prevChanges => ({
+        ...prevChanges,
+        [day]: true
+      }));
+      
+      return newItinerary;
+    });
+    
+    // Show success message or notification
+    setError(null); // Clear any previous errors
+    
+  } catch (err) {
+    setError("Error optimizing route: " + err.message);
+    console.error("Error optimizing route:", err);
+  } finally {
+    setOptimizationLoading(false);
+  }
+};
+
   // Render loading state
   if (loading) {
     return (
@@ -433,9 +517,10 @@ const TravelEaseItineraryPage = () => {
                   />
                 </h3>
                 {!collapsedSections[day.label] && (
-                  <div className="mt-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-medium">Places to Visit</h4>
+                <div className="mt-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Places to Visit</h4>
+                    <div className="flex items-center gap-2">
                       {hasChanges[day.label] && (
                         <button 
                           onClick={() => saveChanges(day.label)}
@@ -449,18 +534,27 @@ const TravelEaseItineraryPage = () => {
                         </button>
                       )}
                     </div>
-                    
-                    <LocationPicker
-                      places={(editedItinerary.places && editedItinerary.places[day.label]) || [""]}
-                      onPlacesChange={handlePlacesChange}
-                      dayLabel={day.label}
-                      onMoveUp={moveUp}
-                      onMoveDown={moveDown}
-                      onRemovePlace={removePlace}
-                      onAddPlace={addPlace}
-                    />
                   </div>
-                )}
+                    
+                  <RouteOptimizationControls 
+                    dayLabel={day.label}
+                    onOptimize={optimizeRoute}
+                    loading={optimizationLoading}
+                    optimizationType={optimizationType}
+                    setOptimizationType={setOptimizationType}
+                  />
+                  
+                  <LocationPicker
+                    places={(editedItinerary.places && editedItinerary.places[day.label]) || [""]}
+                    onPlacesChange={handlePlacesChange}
+                    dayLabel={day.label}
+                    onMoveUp={moveUp}
+                    onMoveDown={moveDown}
+                    onRemovePlace={removePlace}
+                    onAddPlace={addPlace}
+                  />
+                </div>
+              )}
               </div>
             ))}
           </div>

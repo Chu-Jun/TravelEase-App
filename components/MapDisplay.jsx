@@ -43,36 +43,30 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
   }, [markers, activeDay]);
 
   return (
-    <APIProvider apiKey={API_KEY} version="beta">
-      <div className="h-full w-full rounded-lg overflow-hidden border border-gray-200">
+    <div className="w-full h-full">
+      <APIProvider apiKey={API_KEY}>
         <Map
-          mapId="itinerary-map"
           center={mapConfig.center}
           zoom={mapConfig.zoom}
-          gestureHandling="cooperative"
-          mapTypeControl={false}
-          streetViewControl={false}
+          gestureHandling="auto"
+          disableDefaultUI={false}
+          mapId="YOUR_MAP_ID" // Optional: Replace with your custom map ID
         >
           {markers.map((marker, index) => (
             <AdvancedMarker
-              key={`${marker.name}-${index}`}
+              key={index}
               position={marker.coordinate}
               onClick={() => setSelectedMarker(marker)}
               title={marker.name}
             >
-              <Pin 
-                background={'#1E88E5'} 
-                glyphColor={'#FFFFFF'} 
-                borderColor={'#0D47A1'} 
-                scale={1.2}
-              />
+              <Pin />
               {selectedMarker === marker && (
                 <InfoWindow
                   position={marker.coordinate}
                   onCloseClick={() => setSelectedMarker(null)}
                 >
                   <div className="p-2">
-                    <h3 className="font-semibold">{marker.name}</h3>
+                    <h3 className="font-bold text-lg">{marker.name}</h3>
                     {marker.formattedAddress && (
                       <p className="text-sm mt-1">{marker.formattedAddress}</p>
                     )}
@@ -82,8 +76,8 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
             </AdvancedMarker>
           ))}
         </Map>
-      </div>
-    </APIProvider>
+      </APIProvider>
+    </div>
   );
 };
 
