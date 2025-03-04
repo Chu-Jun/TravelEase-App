@@ -212,11 +212,12 @@ const BookingManagementPage = () => {
           
           {/* Tabs for different booking types */}
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-4 mb-4">
+            <TabsList className="grid grid-cols-6 mb-4">
               <TabsTrigger value="all">All Bookings</TabsTrigger>
               <TabsTrigger value="accommodation">Accommodations</TabsTrigger>
               <TabsTrigger value="flight">Flights</TabsTrigger>
               <TabsTrigger value="activity">Activities</TabsTrigger>
+              <TabsTrigger value="calendar">View in Calendar</TabsTrigger>
             </TabsList>
             
             <TabsContent value="all" className="space-y-4">
@@ -280,6 +281,18 @@ const BookingManagementPage = () => {
                 activityBookings.map((booking, index) => (
                   <ActivityCard key={index} booking={booking} />
                 ))
+              )}
+            </TabsContent>
+
+            <TabsContent value="calendar" className="space-y-4">
+              {activityBookings.length === 0 && flightBookings.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    No activity bookings found.
+                  </CardContent>
+                </Card>
+              ) : (
+                <BookingsCalendar tripStartDate={selectedTrip.tripstartdate} activityBooking={activityBookings} flightBooking={flightBookings} accommodationBooking={accommodationBookings}/>
               )}
             </TabsContent>
           </Tabs>
