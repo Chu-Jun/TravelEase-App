@@ -9,10 +9,9 @@ const DEFAULT_CENTER = { lat: 5.2632, lng: 100.4846 }; // Penang as default
 const DEFAULT_ZOOM = 10;
 
 const MapDisplay = ({ itineraryData, activeDay }) => {
-  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const mapRef = useRef(null);
-  const markersRef = useRef([]);
   const [mapConfig, setMapConfig] = useState({
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM
@@ -44,44 +43,49 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
     }
   }, [markers, activeDay]);
 
-  // Separate initialization function that will be called when Google Maps API is loaded
-  window.initGoogleMap = () => {
-    setGoogleMapsLoaded(true);
-  };
-
-  // Handle map initialization after Google Maps is loaded
+  // Initialize map after components are loaded
   useEffect(() => {
-    if (!googleMapsLoaded || !markers.length) return;
+    if (!mapLoaded || markers.length === 0) return;
 
     const mapElement = document.getElementById('map');
     if (!mapElement) return;
 
+    // Set custom HTML for the info window content
+    const createInfoWindowContent = (marker, index) => {
+      return `
+        <div style="padding: 8px; max-width: 200px;">
+          <h3 style="font-weight: bold; font-size: 16px; margin-bottom: 4px;">${marker.name}</h3>
+          ${marker.formattedAddress ? `<p style="font-size: 14px; margin: 4px 0;">${marker.formattedAddress}</p>` : ''}
+          <p style="font-size: 12px; color: #666; margin-top: 4px;">Stop #${index + 1}</p>
+        </div>
+      `;
+    };
+
+    // Initialize map components
     const initMap = async () => {
       try {
-        // Create the map instance
-        const map = new google.maps.Map(mapElement, {
+        // Load the Maps JavaScript API and Routes library
+        const { Map } = await google.maps.importLibrary("maps");
+        const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+        
+        // Create map
+        const map = new Map(mapElement, {
           center: mapConfig.center,
           zoom: mapConfig.zoom,
           mapId: "itineraryPlanningMap"
         });
-
+        
         mapRef.current = map;
 
-        // Create the info window once and reuse it
+        // Create info window (reused for all markers)
         const infoWindow = new google.maps.InfoWindow();
-
-        // Clear any existing markers
-        markersRef.current.forEach(marker => {
-          marker.setMap(null);
-        });
-        markersRef.current = [];
-
-        // Add markers to the map
+        
+        // Add markers with index labels
         markers.forEach((marker, index) => {
-          // Create a standard marker with a label
+          // Create marker with label
           const mapMarker = new google.maps.Marker({
             position: marker.coordinate,
-            map,
+            map: map,
             title: marker.name,
             label: {
               text: String(index + 1),
@@ -90,52 +94,51 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
             }
           });
 
-          markersRef.current.push(mapMarker);
-
-          // Add click listener for info window
+          // Add click listener to show info window
           mapMarker.addListener("click", () => {
-            const content = `
-              <div style="padding: 8px; max-width: 200px;">
-                <h3 style="font-weight: bold; font-size: 16px; margin-bottom: 4px;">${marker.name}</h3>
-                ${marker.formattedAddress ? `<p style="font-size: 14px; margin: 4px 0;">${marker.formattedAddress}</p>` : ''}
-                <p style="font-size: 12px; color: #666; margin-top: 4px;">Stop #${index + 1}</p>
-              </div>
-            `;
-            
-            infoWindow.setContent(content);
+            infoWindow.setContent(createInfoWindowContent(marker, index));
             infoWindow.open(map, mapMarker);
             setSelectedMarker(marker);
           });
         });
 
-        // Draw the route if there are at least 2 markers
+        // Add route if there are at least 2 markers
         if (markers.length >= 2) {
           try {
-            await drawRoute(map, markers);
+            // For Routes API, we need to make a fetch request to the API
+            const routeResponse = await fetchRoute(markers);
+            renderRoute(map, routeResponse);
           } catch (error) {
-            console.error("Error drawing route:", error);
-            drawFallbackRoute(map, markers);
+            console.error('Error fetching or rendering route:', error);
+            
+            // Fallback: draw simple polyline if routes API call fails
+            const path = markers.map(marker => marker.coordinate);
+            const polyline = new google.maps.Polyline({
+              path: path,
+              geodesic: true,
+              strokeColor: '#4285F4',
+              strokeOpacity: 0.8,
+              strokeWeight: 4
+            });
+            
+            polyline.setMap(map);
           }
         }
       } catch (error) {
-        console.error("Map initialization error:", error);
+        console.error('Error initializing map:', error);
       }
     };
 
-    initMap();
-  }, [googleMapsLoaded, markers, mapConfig]);
+    // Fetch route from Routes API
+    const fetchRoute = async (markers) => {
+      if (markers.length < 2) return null;
 
-  // Draw the route using the Routes API
-  const drawRoute = async (map, routeMarkers) => {
-    if (routeMarkers.length < 2) return;
-
-    try {
-      // Create the route request payload
-      const origin = routeMarkers[0].coordinate;
-      const destination = routeMarkers[routeMarkers.length - 1].coordinate;
+      // Create origin, destination and waypoints
+      const origin = markers[0].coordinate;
+      const destination = markers[markers.length - 1].coordinate;
       
-      // Handle intermediate waypoints
-      const intermediates = routeMarkers.slice(1, -1).map(marker => ({
+      // Format waypoints for the Routes API
+      const intermediates = markers.slice(1, -1).map(marker => ({
         location: {
           latLng: {
             latitude: marker.coordinate.lat,
@@ -144,7 +147,7 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
         }
       }));
 
-      // Build the request body
+      // Build the Routes API request
       const requestBody = {
         origin: {
           location: {
@@ -175,7 +178,7 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
         units: "METRIC"
       };
 
-      // Make the API request to the Routes API
+      // Make the API request
       const response = await fetch(
         `https://routes.googleapis.com/directions/v2:computeRoutes`,
         {
@@ -183,7 +186,7 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
           headers: {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': API_KEY,
-            'X-Goog-FieldMask': 'routes.polyline,routes.duration,routes.distanceMeters'
+            'X-Goog-FieldMask': 'routes.polyline,routes.legs,routes.duration,routes.distanceMeters'
           },
           body: JSON.stringify(requestBody)
         }
@@ -193,61 +196,52 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
         throw new Error(`Routes API request failed with status: ${response.status}`);
       }
 
-      const routeData = await response.json();
-      
-      if (!routeData.routes || routeData.routes.length === 0) {
-        throw new Error("No routes returned from API");
+      return await response.json();
+    };
+
+    // Render the route on the map
+    const renderRoute = (map, routeResponse) => {
+      if (!routeResponse || !routeResponse.routes || routeResponse.routes.length === 0) {
+        throw new Error('No route found in the response');
       }
 
-      // Create and display the polyline using the encoded polyline from the response
-      const route = routeData.routes[0];
-      const decodedPath = google.maps.geometry.encoding.decodePath(
-        route.polyline.encodedPolyline
-      );
-
-      const routeLine = new google.maps.Polyline({
-        path: decodedPath,
+      const route = routeResponse.routes[0];
+      
+      // The polyline in the response is encoded
+      const polyline = new google.maps.Polyline({
+        path: google.maps.geometry.encoding.decodePath(route.polyline.encodedPolyline),
         geodesic: true,
-        strokeColor: "#4285F4",
+        strokeColor: '#4285F4',
         strokeOpacity: 0.8,
-        strokeWeight: 4,
-        map: map
+        strokeWeight: 4
       });
+      
+      polyline.setMap(map);
+    };
 
-    } catch (error) {
-      console.error("Error with Routes API:", error);
-      // Fall back to direct line if the API fails
-      drawFallbackRoute(map, routeMarkers);
+    // Initialize if Google Maps is already loaded
+    if (window.google && window.google.maps) {
+      initMap();
+    } else {
+      // Google Maps will call this function when loaded
+      window.initGoogleMap = initMap;
     }
-  };
-
-  // Draw a simple straight-line route as fallback
-  const drawFallbackRoute = (map, routeMarkers) => {
-    const path = routeMarkers.map(marker => marker.coordinate);
-    
-    const polyline = new google.maps.Polyline({
-      path,
-      geodesic: true,
-      strokeColor: "#FF5252", // Different color to indicate fallback
-      strokeOpacity: 0.8,
-      strokeWeight: 4,
-      map
-    });
-  };
+  }, [mapLoaded, markers, mapConfig, activeDay]);
 
   return (
     <div className="w-full h-full relative">
-      {/* Load Google Maps JavaScript API with callback */}
+      {/* Load Google Maps JavaScript API with required libraries */}
       <Script
-        src={`https://maps.googleapis.com/maps/api/js?key=${API_KEY}&callback=initGoogleMap&libraries=geometry`}
+        src={`https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=marker,geometry&callback=initGoogleMap&v=beta`}
+        onLoad={() => setMapLoaded(true)}
         strategy="afterInteractive"
       />
       
       {/* Map container */}
       <div id="map" className="w-full h-full" />
       
-      {/* Loading indicator */}
-      {!googleMapsLoaded && (
+      {/* Optional loading state */}
+      {!mapLoaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50">
           <p>Loading map...</p>
         </div>
