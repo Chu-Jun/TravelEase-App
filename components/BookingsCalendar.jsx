@@ -13,7 +13,7 @@ const styles = {
   }
 };
 
-const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking, accommodationBooking }) => {
+const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking }) => {
 
   const [calendar, setCalendar] = useState(null);
   const [events, setEvents] = useState([]);
