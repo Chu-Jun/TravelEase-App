@@ -195,7 +195,7 @@ const ExpenseTrackingPage: React.FC = () => {
       {/* Right section for expense tracking */}
       {selectedTrip && (
         <div className="w-3/4 p-4">
-          <h2 className="text-3xl font-bold mb-6">Expense Tracking</h2>
+          <h2 className="text-3xl font-bold mb-6">Expense Tracking for {selectedTrip.tripname}</h2>
           
           {expenses.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

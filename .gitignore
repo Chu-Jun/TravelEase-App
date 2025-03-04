@@ -43,6 +43,3 @@ next-env.d.ts
 # local env files
 .env*.local
 .env
-app/page.tsx
-components/Footer.jsx
-components/MapDisplay.jsx
