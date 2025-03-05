@@ -52,6 +52,7 @@ const TravelEaseItineraryPage = () => {
   const [activeDay, setActiveDay] = useState(null);
   const [optimizationLoading, setOptimizationLoading] = useState(false);
   const [optimizationType, setOptimizationType] = useState("time");
+  const [transportMode, setTransportMode] = useState("BOTH");
 
   // Fetch trip and itinerary data
   useEffect(() => {
@@ -364,6 +365,7 @@ const optimizeRoute = async (day) => {
         lat: marker.coordinate.lat,
         lng: marker.coordinate.lng
       })),
+      preferred_mode: transportMode,
       optimization_type: optimizationType
     };
     
@@ -398,10 +400,20 @@ const optimizeRoute = async (day) => {
       const optimizedMarkers = result.optimized_sequence.map(name => 
         dayMarkers.find(marker => marker.name === name)
       );
+
+      // Add transportation modes to the itinerary
+      newItinerary.transportModes = {
+        [day]: {
+          preferredMode: result.preferred_mode,
+          travelModes: result.travel_modes
+        }
+      };
       
       // Update the itinerary with optimized sequences
       newItinerary.places[day] = optimizedPlaces;
       newItinerary.markers[day] = optimizedMarkers;
+
+      console.log("New Itinerary: ",newItinerary);
       
       // Mark as changed
       setHasChanges(prevChanges => ({
@@ -542,6 +554,8 @@ const optimizeRoute = async (day) => {
                     loading={optimizationLoading}
                     optimizationType={optimizationType}
                     setOptimizationType={setOptimizationType}
+                    transportMode={transportMode}
+                    setTransportMode={setTransportMode}
                   />
                   
                   <LocationPicker

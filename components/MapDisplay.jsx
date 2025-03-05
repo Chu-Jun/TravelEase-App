@@ -19,6 +19,8 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
 
   // Get markers for the active day
   const markers = itineraryData?.markers?.[activeDay] || [];
+  const transportMode = itineraryData?.transportModes || [];
+  console.log(transportMode);
 
   // Update map center and zoom when markers change
   useEffect(() => {

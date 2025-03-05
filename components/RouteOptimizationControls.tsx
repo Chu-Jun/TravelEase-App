@@ -1,8 +1,8 @@
 // RouteOptimizationControls component
-const RouteOptimizationControls = ({ dayLabel, onOptimize, loading, optimizationType, setOptimizationType }: any) => {
+const RouteOptimizationControls = ({ dayLabel, onOptimize, loading, optimizationType, setOptimizationType, transportMode, setTransportMode }: any) => {
     return (
       <div className="flex items-center space-x-3 mt-2 mb-4">
-        <div className="font-medium text-sm">Optimize by:</div>
+        <div className="font-medium text-sm">Optimize By:</div>
         <div className="flex items-center space-x-2">
           <select 
             value={optimizationType}
@@ -12,6 +12,20 @@ const RouteOptimizationControls = ({ dayLabel, onOptimize, loading, optimization
           >
             <option value="time">Travel Time</option>
             <option value="distance">Distance</option>
+          </select>
+          
+        </div>
+        <div className="font-medium text-sm">Preferred Mode:</div>
+        <div className="flex items-center space-x-2">
+          <select 
+            value={transportMode}
+            onChange={(e) => setTransportMode(e.target.value)}
+            className="border rounded-md px-2 py-1 text-sm"
+            disabled={loading}
+          >
+            <option value="BOTH">Both</option>
+            <option value="DRIVE">Drive</option>
+            <option value="TRANSIT">Public Transport</option>
           </select>
           
           <button
