@@ -566,6 +566,7 @@ const optimizeRoute = async (day) => {
                     onMoveDown={moveDown}
                     onRemovePlace={removePlace}
                     onAddPlace={addPlace}
+                    transportModes={editedItinerary.transportModes || {}}
                   />
                 </div>
               )}
