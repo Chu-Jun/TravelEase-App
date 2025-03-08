@@ -70,10 +70,6 @@ export default function AuthButton() {
     loadUserData();
   }, []);
 
-  if (loading) {
-    return <div className="flex items-center justify-end gap-10">Loading...</div>;
-  }
-
   return (
     <div className="w-full flex justify-end items-center">
       {/* Desktop Navigation - Now right-aligned */}

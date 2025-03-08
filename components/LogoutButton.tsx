@@ -24,9 +24,10 @@ export default function LogoutButton() {
       type="button" 
       size="sm" 
       variant="ghost"
-      className="w-full text-right"
+      className="w-full text-left px-0 py-0 font-normal justify-start"
     >
       Sign out
     </Button>
+
   )
 }
