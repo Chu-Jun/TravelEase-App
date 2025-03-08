@@ -31,7 +31,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="bg-background mt-16 min-h-screen">
+        <div className="bg-background mt-16 min-h-screen max-w-screen">
           <Navbar>
             <HeaderAuth />
           </Navbar>
