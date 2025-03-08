@@ -23,6 +23,7 @@ export default async function UserProfileForm() {
         id: userData?.id || null,
         username: userData?.username || null,
         email: userData?.email || null,
+        emailPreferences: userData?.email_preferences.trip_reminders || null,
     });
 
 

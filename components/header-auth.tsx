@@ -1,10 +1,10 @@
-import { signOutAction } from "@/app/actions";
+"use client"
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "./ui/button";
-import { createClient } from "@/utils/supabase/server";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import LogoutButton from './LogoutButton';
+import { createClient } from "@/utils/supabase/client"; // Use client-side Supabase client
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,77 +14,171 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+// Define types for navigation links and user
+interface NavLink {
+  href: string;
+  label: string;
+}
 
-export default async function AuthButton() {
+// Define a User type to match what Supabase returns
+interface User {
+  id: string;
+  // Add other user properties you need
+}
 
-  const supabase = await createClient();
+export default function AuthButton() {
+  // Fix TypeScript error by properly typing the state
+  const [user, setUser] = useState<User | null>(null);
+  const [profileLink, setProfileLink] = useState("/profile");
+  const [loading, setLoading] = useState(true);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Navigation links array to reuse in both desktop and mobile views
+  const navLinks: NavLink[] = [
+    { href: "/", label: "Home" },
+    { href: "/itinerary-planning", label: "Itinerary Planning" },
+    { href: "/booking-management", label: "Booking Management" },
+    { href: "/expense-tracking", label: "Expense Management" },
+  ];
 
-  let userRole = null;
-  let profileLink = null;
+  useEffect(() => {
+    async function loadUserData() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // Get user role from profiles table
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
 
-  if (user) {
-    
-    // Get user role from profiles table
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profile) {
-      userRole = profile.role;
-      // Set profile link based on role
-      switch (userRole) {
-        case 'user':
-          profileLink = '/profile';
-          break;
+          if (profile && profile.role === 'user') {
+            setProfileLink('/profile');
+          }
+        }
+        
+        setUser(user as User | null);
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      } finally {
+        setLoading(false);
       }
     }
+
+    loadUserData();
+  }, []);
+
+  if (loading) {
+    return <div className="flex items-center justify-end gap-10">Loading...</div>;
   }
 
-  return user ? (
-    <div className="flex items-center gap-10">
-      <Link href="/" className="font-semibold">Home</Link>
-      <Link href="/itinerary-planning" className="font-semibold">Itinerary Planning</Link>
-      <Link href="/booking-management" className="font-semibold">Booking Management</Link>
-      <Link href="/expense-tracking" className="font-semibold">Expense Management</Link>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <FontAwesomeIcon icon={faUser} size="xl" style={{ width: "24px", height: "24px" }}/>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuItem>
-            <Link href={profileLink || "/profile"} className="p-3">View Profile</Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogoutButton />
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+  return (
+    <div className="w-full flex justify-end items-center">
+      {/* Desktop Navigation - Now right-aligned */}
+      <div className="hidden md:flex items-center gap-10">
+        {navLinks.map((link: NavLink) => (
+          <Link key={link.href} href={link.href} className="font-semibold">
+            {link.label}
+          </Link>
+        ))}
+        <UserMenu user={user} profileLink={profileLink} />
+      </div>
+
+      {/* Mobile Navigation - Now right-aligned */}
+      <div className="md:hidden flex items-center gap-2">
+        <MobileNavigation navLinks={navLinks} user={user} profileLink={profileLink} />
+      </div>
     </div>
-  ) : (
-    <div className="flex gap-10 items-center">
-      <Link href="/" className="font-semibold">Home</Link>
-      <Link href="/itinerary-planning" className="font-semibold">Itinerary Planning</Link>
-      <Link href="/booking-management" className="font-semibold">Booking Management</Link>
-      <Link href="/expense-tracking" className="font-semibold">Expense Management</Link>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <FontAwesomeIcon icon={faUser} size="xl" style={{ width: "24px", height: "24px" }}/>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuItem>
-            <Link href="/sign-in">Sign in</Link>
+  );
+}
+
+// Client component for user menu dropdown
+function UserMenu({ user, profileLink }: { user: User | null; profileLink: string }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <FontAwesomeIcon icon={faUser} size="xl" style={{ width: "24px", height: "24px" }} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {user ? (
+          <>
+            <DropdownMenuItem>
+              <Link href={profileLink} className="w-full">View Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <LogoutButton />
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <>
+            <DropdownMenuItem>
+              <Link href="/sign-in" className="w-full">Sign in</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link href="/sign-up" className="w-full">Sign up</Link>
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// Client component for mobile navigation
+function MobileNavigation({ 
+  navLinks, 
+  user, 
+  profileLink 
+}: { 
+  navLinks: NavLink[]; 
+  user: User | null; 
+  profileLink: string 
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="p-2">
+        <FontAwesomeIcon icon={faBars} size="xl" style={{ width: "24px", height: "24px" }} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        
+        {/* Navigation Links */}
+        {navLinks.map((link: NavLink) => (
+          <DropdownMenuItem key={link.href}>
+            <Link href={link.href} className="w-full">
+              {link.label}
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Link href="/sign-up">Sign up</Link>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+        ))}
+        
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        
+        {/* User Account Options */}
+        {user ? (
+          <>
+            <DropdownMenuItem>
+              <Link href={profileLink} className="w-full">View Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <LogoutButton />
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <>
+            <DropdownMenuItem>
+              <Link href="/sign-in" className="w-full">Sign in</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link href="/sign-up" className="w-full">Sign up</Link>
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

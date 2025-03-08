@@ -106,7 +106,6 @@ export const signUpAction = async (formData: SignUpFormValues, role: string) => 
   };
 };
   
-
 export const signInAction = async (formData: FormValues) => {
   const email = formData.email as string;
   const password = formData.password as string;
@@ -205,12 +204,13 @@ export const signOutAction = async () => {
 };
 
 export const userUpdateProfileAction = async (formData: any) => {
-
   const supabase = await createClient();
 
   const id = formData.id as string;
   const username = formData.username as string;
   const email = formData.email as string;
+  const reminderDays = formData.reminder_days as number;
+  const emailPreferences = formData.email_preferences as { trip_reminders: boolean };
 
   const { data, error } = await supabase
     .from("users")
@@ -218,9 +218,12 @@ export const userUpdateProfileAction = async (formData: any) => {
       id,
       username,
       email,
+      reminder_days: reminderDays,
+      email_preferences: emailPreferences
     });
 
   if (error) {
+    console.error("Error updating profile:", error);
     return {
       status: "error",
       message: "Could not update profile",
@@ -231,7 +234,6 @@ export const userUpdateProfileAction = async (formData: any) => {
       message: "Profile updated",
     };
   }
-
 }
 
 export const createTripAction = async (formData: any) => {

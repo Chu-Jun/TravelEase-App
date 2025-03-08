@@ -285,7 +285,7 @@ export default function Home() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="bg-secondary text-white mt-0 ml-4" disabled={form.formState.isSubmitting}>
+                    <Button type="submit" className="bg-primary text-white mt-0 ml-4" disabled={form.formState.isSubmitting}>
                       {form.formState.isSubmitting ? "Creating Trip..." : "Start Planning"}
                     </Button>
                   </div>
@@ -297,7 +297,7 @@ export default function Home() {
       </div>
       
       {/* Must Visit Section - Mobile Optimized */}
-      <div className="w-full flex flex-col text-primary text-center items-center gap-y-4 md:justify-center mt-8 px-4">
+      <div className="w-full flex flex-col text-title text-center items-center gap-y-4 md:justify-center mt-8 px-4">
         <p
           className={`${ibm_plex_mono.className} text-3xl md:text-4xl font-extrabold leading-none drop-shadow-xl`}
         >

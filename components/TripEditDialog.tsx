@@ -78,7 +78,7 @@ export default function TripEditDialog({tripData, open, onOpenChange}: any) {
             <DialogContent className="text-black w-4/5 rounded-lg">
                 <DialogHeader>
                     <DialogTitle>
-                        <p className="text-primary font-extrabold">Edit Trip For {tripData?.tripname}</p>
+                        <p className="text-title font-extrabold">Edit Trip For {tripData?.tripname}</p>
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
@@ -138,7 +138,7 @@ export default function TripEditDialog({tripData, open, onOpenChange}: any) {
                                                 <SelectValue placeholder="Select Tag" />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent className="bg-white text-primary">
+                                        <SelectContent className="bg-white text-title">
                                             <SelectItem value="Local">Local</SelectItem>
                                             <SelectItem value="Abroad">Abroad</SelectItem>
                                         </SelectContent>

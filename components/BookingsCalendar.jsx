@@ -35,7 +35,7 @@ const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking }) => 
       text: `Activity: ${activity.activityname}`,
       start: `${activity.activitydate}T${activity.starttime}`,
       end: `${activity.activitydate}T${activity.endtime}`,
-      backColor: "#6aa84f" // Green for activities
+      backColor: "#0097D1" // Blue for activities
     })) || [];
 
     // Convert flightBooking into event format
@@ -44,7 +44,7 @@ const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking }) => 
       text: `Flight: ${flight.flightcode} (${flight.airline})`,
       start: `${flight.flightdate}T${flight.departtime}`,
       end: `${flight.flightdate}T${flight.departtime}`,
-      backColor: "#cc4125" // Red for flights
+      backColor: "#e17100" // Yellow for flights
     })) || [];
 
     // const accommEvents = accommodationBooking?.map(accommodation => ({

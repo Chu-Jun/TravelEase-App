@@ -81,7 +81,7 @@ const ItineraryPlanningPage = () => {
   return (
     <div className="flex mt-16">
       {/* Left section for trip list */}
-      <div className="w-1/4 p-4 space-y-4 bg-slate-300">
+      <div className="w-1/4 p-4 space-y-4 bg-white">
         <h2 className="text-3xl font-bold">My Trip</h2>
         <TripCreationDialog/>
         <div className="space-y-4">
@@ -96,7 +96,6 @@ const ItineraryPlanningPage = () => {
               }`}
             >
               <PlannedTripCard
-                imageSrc={trip.imageSrc}
                 tripTitle={trip.tripname}
                 touristNum={trip.touristnum}
                 duration={calculateDuration(trip.tripstartdate, trip.tripenddate)}
@@ -110,9 +109,9 @@ const ItineraryPlanningPage = () => {
 
       {/* Right section for overview */}
       {selectedTrip && (
-        <div className="w-3/4 p-4">
+        <div className="w-3/4 p-4 bg-background">
           <div className="flex justify-between items-center">
-            <h2 className="text-3xl font-bold">Overview</h2>
+            <h2 className="text-3xl font-bold">Overview of {selectedTrip.tripname} Trip</h2>
             <button
               className="bg-primary text-white px-4 py-2 rounded-lg"
               onClick={handleSeeDetails}

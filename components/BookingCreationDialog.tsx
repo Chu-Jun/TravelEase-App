@@ -82,14 +82,14 @@ export default function BookingCreationDialog({ tripData }: any) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-secondary text-white mt-8 md:w-1/3 md:self-center min-w-fit">
+        <Button className="bg-primary text-white mt-8 md:w-1/3 md:self-center min-w-fit">
           + Add Booking Record
         </Button>
       </DialogTrigger>
       <DialogContent className="text-black w-4/5 rounded-lg">
         <DialogHeader>
           <DialogTitle>
-            <p className="text-primary font-extrabold">Add Booking Record</p>
+            <p className="text-title font-extrabold">Add Booking Record</p>
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
