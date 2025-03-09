@@ -31,12 +31,11 @@ export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
   const [profileLink, setProfileLink] = useState("/profile");
   const [loading, setLoading] = useState(true);
-  console.log(window.location.href);
 
   // Navigation links array to reuse in both desktop and mobile views
   const navLinks: NavLink[] = [
     { href: "/", label: "Home" },
-    { href: "/itinerary-planning", label: "Itinerary Planning" },
+    { href: "/itinerary-planning", label: "Trip Planning" },
     { href: "/booking-management", label: "Booking Management" },
     { href: "/expense-tracking", label: "Expense Management" },
   ];
