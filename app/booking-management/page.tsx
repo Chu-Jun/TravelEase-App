@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import "react-calendar/dist/Calendar.css";
+import { ChevronDown, ChevronUp, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import PlannedTripCard from "@/components/PlannedTripCard";
 import TripCreationDialog from "@/components/TripCreationDialog";
@@ -65,6 +66,7 @@ const BookingManagementPage = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Separate states for each booking type
   const [activityBookings, setActivityBookings] = useState<ActivityBooking[]>([]);
@@ -155,6 +157,10 @@ const BookingManagementPage = () => {
     }
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   if (isLoading) {
     return <div className="flex mt-16 justify-center items-center h-screen bg-background">Loading trips...</div>;
   }
@@ -171,48 +177,84 @@ const BookingManagementPage = () => {
   return (
     <div className="flex mt-16 bg-background">
       {/* Left section for trip list */}
-      <div className="w-1/4 p-4 space-y-4 bg-white min-h-screen">
-        <h2 className="text-3xl font-bold">My Trip</h2>
-        <div className="space-y-4">
-          {trips.map((trip) => (
-            <div 
-              key={trip.tripid} 
-              onClick={() => setSelectedTrip(trip)}
-              className={`cursor-pointer transition-all ${
-                selectedTrip && trip.tripid === selectedTrip.tripid 
-                  ? "opacity-100 scale-105" 
-                  : "opacity-90 hover:opacity-100"
-              }`}
-            >
-              <PlannedTripCard
-                tripTitle={trip.tripname}
-                touristNum={trip.touristnum}
-                duration={calculateDuration(trip.tripstartdate, trip.tripenddate)}
-                tag={trip.tag}
-                trip={trip}
-              />
+        {/* Sidebar for trip list - becomes an overlay on mobile */}
+        <div 
+          className={`${
+            sidebarOpen ? "fixed inset-0 z-50 bg-white" : "hidden"
+          } md:relative md:block md:w-1/4 md:overflow-y-auto lg:overflow-y-visible lg:min-h-max p-4 space-y-4 bg-white`}
+          style={{ 
+            transition: "all 0.3s ease-in-out" 
+          }}
+        >
+          {sidebarOpen && (
+            <div className="flex justify-between items-center mb-4 md:hidden">
+              <h2 className="text-2xl font-bold">My Trips</h2>
+              <button onClick={toggleSidebar} className="p-2">
+                <X size={24} />
+              </button>
             </div>
-          ))}
+          )}
+          
+          <h2 className="text-3xl font-bold hidden md:block">My Trip</h2>
+          <div className="space-y-4">
+            {trips.map((trip) => (
+              <div 
+                key={trip.tripid} 
+                onClick={() => {
+                  setSelectedTrip(trip);
+                  if (sidebarOpen) setSidebarOpen(false);
+                }}
+                className={`cursor-pointer transition-all ${
+                  selectedTrip && trip.tripid === selectedTrip.tripid 
+                    ? "opacity-100 scale-105" 
+                    : "opacity-90 hover:opacity-100"
+                }`}
+              >
+                <PlannedTripCard
+                  tripTitle={trip.tripname}
+                  touristNum={trip.touristnum}
+                  duration={calculateDuration(trip.tripstartdate, trip.tripenddate)}
+                  tag={trip.tag}
+                  trip={trip}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
       {/* Right section for bookings overview */}
       {selectedTrip && (
-        <div className="w-3/4 p-4">
-          <div className="flex justify-between items-center mb-6">
+        <div className="w-full md:w-3/4 p-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center md:mb-6 md:w-full mb-4 w-[75%]">
             <h2 className="text-3xl font-bold">Bookings Made for {selectedTrip.tripname}</h2>
             <BookingCreationDialog tripData={selectedTrip}/>
           </div>
           
+          <div className="w-full mb-4">
+          {/* Dropdown for mobile */}
+          <div className="md:hidden">
+            <select
+              className="w-full p-2 border rounded max-w-screen"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+            >
+              <option value="all">All Bookings</option>
+              <option value="accommodation">Accommodations</option>
+              <option value="flight">Flights</option>
+              <option value="activity">Activities</option>
+              <option value="calendar">View in Calendar</option>
+            </select>
+          </div>
+
           {/* Tabs for different booking types */}
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full ">
-            <TabsList className="grid grid-flow-col auto-cols-max w-full mb-4 text-lg">
-              <TabsTrigger value="all">All Bookings</TabsTrigger>
-              <TabsTrigger value="accommodation">Accommodations</TabsTrigger>
-              <TabsTrigger value="flight">Flights</TabsTrigger>
-              <TabsTrigger value="activity">Activities</TabsTrigger>
-              <TabsTrigger value="calendar">View in Calendar</TabsTrigger>
-            </TabsList>
+          <Tabs className="md:w-full lg:w-full" defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="flex w-full mb-4 text-lg border-b border-gray-300">
+            <TabsTrigger className="flex-1" value="all">All Bookings</TabsTrigger>
+            <TabsTrigger className="flex-1" value="accommodation">Accommodations</TabsTrigger>
+            <TabsTrigger className="flex-1" value="flight">Flights</TabsTrigger>
+            <TabsTrigger className="flex-1" value="activity">Activities</TabsTrigger>
+            <TabsTrigger className="flex-1" value="calendar">View in Calendar</TabsTrigger>
+          </TabsList>
             
             <TabsContent value="all" className="space-y-4">
               {activityBookings.length === 0 && accommodationBookings.length === 0 && flightBookings.length === 0 ? (
@@ -290,8 +332,18 @@ const BookingManagementPage = () => {
               )}
             </TabsContent>
           </Tabs>
+          </div>
         </div>
       )}
+            {/* Fixed action button for mobile - shows the trips when main view is showing */}
+            <div className="md:hidden fixed bottom-4 right-4 z-50">
+            <button 
+              onClick={toggleSidebar}
+              className="bg-primary text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg"
+            >
+              <Menu size={24} />
+            </button>
+          </div>
     </div>
   );
 };
