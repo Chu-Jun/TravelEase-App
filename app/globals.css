@@ -113,3 +113,11 @@ gmpx-place-picker {
   position: sticky;
   top: 1rem;
 }
+
+.react-calendar__viewContainer {
+  pointer-events: none;
+}
+
+.react-calendar__navigation {
+  pointer-events: none;
+}

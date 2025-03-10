@@ -102,7 +102,12 @@ const TravelEaseItineraryPage = () => {
             if (!initialItinerary.markers[day.label]) {
               initialItinerary.markers[day.label] = [];
             }
-            console.log("Places for", day.label, initialItinerary.places[day.label]);
+            if(day.label != "Day 1"){
+              setCollapsedSections((prevState) => ({
+                ...prevState,
+                [day.label]: true,
+              }));
+            }
           });
           
           setItinerary(initialItinerary);
@@ -575,7 +580,7 @@ const optimizeRoute = async (day) => {
           </div>
           
           {/* Right side: Map */}
-          <div className="w-1/2 p-6">
+          <div className="w-1/2 p-6 h-screen">
             <div className="border rounded-lg h-full overflow-hidden shadow-sm">
               <MapDisplay
                 itineraryData={editedItinerary}
