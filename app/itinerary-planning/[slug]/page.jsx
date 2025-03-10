@@ -7,7 +7,7 @@ import {
   faChevronRight, 
   faChevronDown,
   faSave,
-  faRoute
+  faMap
 } from "@fortawesome/free-solid-svg-icons";
 import { useParams } from "next/navigation";
 import { 
@@ -51,6 +51,7 @@ const TravelEaseItineraryPage = () => {
   const [error, setError] = useState(null);
   const [activeDay, setActiveDay] = useState(null);
   const [optimizationLoading, setOptimizationLoading] = useState(false);
+  const [mobileMapVisible, setMobileMapVisible] = useState(false);
   const [optimizationType, setOptimizationType] = useState("time");
   const [transportMode, setTransportMode] = useState("BOTH");
 
@@ -474,9 +475,9 @@ const optimizeRoute = async (day) => {
   }
 
   return (
-    <div className="flex mt-16">
+    <div className="flex flex-col md:flex-row mt-16">
       {/* Sidebar */}
-      <div className="w-1/4 bg-white p-4 min-h-screen">
+      <div className="w-full md:w-1/4 bg-white p-4">
         <ul className="space-y-4">
           <li className="text-gray-800 font-semibold">Overview</li>
           <li className="text-gray-800 font-semibold">
@@ -500,7 +501,7 @@ const optimizeRoute = async (day) => {
       </div>
 
       {/* Main content */}
-      <div className="w-3/4 flex flex-col h-full bg-background">
+      <div className="w-full md:w-3/4 flex flex-col">
         <h2 className="text-2xl font-bold p-6 pb-2">Itinerary for {trip.tripname}</h2>
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mx-6 mb-2">
@@ -509,9 +510,9 @@ const optimizeRoute = async (day) => {
         )}
         
         {/* Split view: itinerary and map */}
-        <div className="flex flex-1 overflow-y-visible">
+        <div className="flex flex-col md:flex-row flex-1 overflow-y-visible">
           {/* Left side: Itinerary */}
-          <div className="w-1/2 p-6 overflow-y-visible">
+          <div className="w-full md:w-1/2 p-4 md:p-6">
             {days.map((day) => (
               <div 
                 key={day.label} 
@@ -552,16 +553,17 @@ const optimizeRoute = async (day) => {
                       )}
                     </div>
                   </div>
-                    
-                  <RouteOptimizationControls 
-                    dayLabel={day.label}
-                    onOptimize={optimizeRoute}
-                    loading={optimizationLoading}
-                    optimizationType={optimizationType}
-                    setOptimizationType={setOptimizationType}
-                    transportMode={transportMode}
-                    setTransportMode={setTransportMode}
-                  />
+                  <div className="w-full sm:max-w-md lg:max-w-lg overflow-hidden">
+                    <RouteOptimizationControls 
+                      dayLabel={day.label}
+                      onOptimize={optimizeRoute}
+                      loading={optimizationLoading}
+                      optimizationType={optimizationType}
+                      setOptimizationType={setOptimizationType}
+                      transportMode={transportMode}
+                      setTransportMode={setTransportMode}
+                    />
+                  </div>
                   
                   <LocationPicker
                     places={(editedItinerary.places && editedItinerary.places[day.label]) || [""]}
@@ -580,13 +582,27 @@ const optimizeRoute = async (day) => {
           </div>
           
           {/* Right side: Map */}
-          <div className="w-1/2 p-6 h-screen">
+          <div className={`
+            w-full md:w-1/2 p-4 md:p-6
+            ${mobileMapVisible ? 'block' : 'hidden'} md:block
+            ${mobileMapVisible ? 'h-80' : 'h-0'} md:h-screen
+            transition-all duration-300
+          `}>
             <div className="border rounded-lg h-full overflow-hidden shadow-sm">
               <MapDisplay
                 itineraryData={editedItinerary}
                 activeDay={activeDay}
               />
             </div>
+          </div>
+          <div className="md:hidden w-full mb-4 flex justify-center">
+            <button 
+              onClick={() => setMobileMapVisible(!mobileMapVisible)}
+              className="w-[75%] bg-blue-500 text-white py-3 px-4 rounded-lg flex items-center justify-center"
+            >
+              <FontAwesomeIcon icon={faMap} className="mr-2" />
+              {mobileMapVisible ? 'Hide Map' : 'Show Map'}
+            </button>
           </div>
         </div>
       </div>
