@@ -469,9 +469,9 @@ const optimizeRoute = async (day) => {
   }
 
   return (
-    <div className="flex h-screen mt-16">
+    <div className="flex mt-16">
       {/* Sidebar */}
-      <div className="w-1/4 bg-gray-100 p-4">
+      <div className="w-1/4 bg-white p-4 min-h-screen">
         <ul className="space-y-4">
           <li className="text-gray-800 font-semibold">Overview</li>
           <li className="text-gray-800 font-semibold">
@@ -495,7 +495,7 @@ const optimizeRoute = async (day) => {
       </div>
 
       {/* Main content */}
-      <div className="w-3/4 flex flex-col h-full">
+      <div className="w-3/4 flex flex-col h-full bg-background">
         <h2 className="text-2xl font-bold p-6 pb-2">Itinerary for {trip.tripname}</h2>
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mx-6 mb-2">
@@ -504,13 +504,13 @@ const optimizeRoute = async (day) => {
         )}
         
         {/* Split view: itinerary and map */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-y-visible">
           {/* Left side: Itinerary */}
-          <div className="w-1/2 p-6 overflow-y-auto">
+          <div className="w-1/2 p-6 overflow-y-visible">
             {days.map((day) => (
               <div 
                 key={day.label} 
-                className={`mb-6 border rounded-lg p-4 shadow-sm ${
+                className={`mb-6 bg-white border rounded-lg p-4 shadow-sm ${
                   day.label === activeDay ? "border-blue-500" : ""
                 }`}
               >

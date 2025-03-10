@@ -38,15 +38,15 @@ interface FlightBooking {
       };
 
     return (
-      <Card>
-        <CardHeader className="bg-amber-50 pb-2 flex-row justify-between">
+      <Card className="rounded-lg">
+        <CardHeader className="bg-white pb-2 flex-row justify-between rounded-lg">
           <CardTitle className="text-lg font-medium text-amber-600">
             Flight: {booking.flightcode} - {booking.airline}
           </CardTitle>
                   {/* Dropdown Menu with click handlers instead of Dialog components */}
         <DropdownMenu>
             <DropdownMenuTrigger>
-            <span className="font-extrabold text-gray-800 hover:text-black">...</span>
+            <span className="font-extrabold text-gray-800 hover:text-primary">...</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
             <DropdownMenuItem onSelect={(e) => {

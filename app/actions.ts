@@ -106,7 +106,6 @@ export const signUpAction = async (formData: SignUpFormValues, role: string) => 
   };
 };
   
-
 export const signInAction = async (formData: FormValues) => {
   const email = formData.email as string;
   const password = formData.password as string;
@@ -205,12 +204,13 @@ export const signOutAction = async () => {
 };
 
 export const userUpdateProfileAction = async (formData: any) => {
-
   const supabase = await createClient();
 
   const id = formData.id as string;
   const username = formData.username as string;
   const email = formData.email as string;
+  const reminderDays = formData.reminder_days as number;
+  const emailPreferences = formData.email_preferences as { trip_reminders: boolean };
 
   const { data, error } = await supabase
     .from("users")
@@ -218,9 +218,12 @@ export const userUpdateProfileAction = async (formData: any) => {
       id,
       username,
       email,
+      reminder_days: reminderDays,
+      email_preferences: emailPreferences
     });
 
   if (error) {
+    console.error("Error updating profile:", error);
     return {
       status: "error",
       message: "Could not update profile",
@@ -231,7 +234,6 @@ export const userUpdateProfileAction = async (formData: any) => {
       message: "Profile updated",
     };
   }
-
 }
 
 export const createTripAction = async (formData: any) => {
@@ -284,6 +286,92 @@ export const getTrips = async () => {
 
   return data;
 };
+
+export async function getTripDetails(tripId: any) {
+  const supabase = await createClient();
+
+  console.log("trip id received", tripId);
+  // Fetch trip data
+  const { data: trip, error: tripError } = await supabase
+    .from('trip')
+    .select('*')
+    .eq('tripid', tripId)
+    .single()
+  
+  if (tripError) {
+    console.error("Error fetching trip:", tripError)
+    return null
+  }
+  
+  // Fetch accommodations for the trip
+  const { data: accommodations, error: accomError } = await supabase
+    .from('accommodationbooking')
+    .select('*, location!inner(*)')
+    .eq('tripid', tripId)
+  
+    if (accomError) {
+      console.error("Error fetching accommpdations:", accomError)
+      return null
+    }
+  
+  // Fetch flights for the trip
+  const { data: flights, error: flightError } = await supabase
+    .from('flightbooking')
+    .select('*')
+    .eq('tripid', tripId)
+
+  
+    if (flightError) {
+      console.error("Error fetching flights:", flightError)
+      return null
+    }
+  // Fetch activities for the trip
+  const { data: activities, error: activityError } = await supabase
+    .from('activitybooking')
+    .select('*, location!inner(*)')
+    .eq('tripid', tripId)
+
+    if (activityError) {
+      console.error("Error fetching activities:", activityError)
+      return null
+    }
+  
+  // Fetch expenses for the trip
+  const { data: expenses, error: expensesError } = await supabase
+    .from('expenserecord')
+    .select('*')
+    .eq('tripid', tripId)
+
+    if (expensesError) {
+      console.error("Error fetching expenses:", expensesError)
+      return null
+    }
+  
+  // Fetch itinerary days for the trip
+  const { data: itineraryDays, error: itineraryError } = await supabase
+    .from('itineraryperday')
+    .select('*')
+    .eq('tripid', tripId)
+    .order('date', { ascending: true })
+
+    if (itineraryError) {
+      console.error("Error fetching itinerary:", itineraryError)
+      return null
+    }
+  
+  // Calculate total expenses
+  const totalExpenses = expenses?.reduce((sum: number, expense: { amountspent: string; }) => sum + parseFloat(expense.amountspent), 0) || 0
+  console.log("Total Expenses is", totalExpenses);
+  
+  return {
+    ...trip,
+    accommodations: accommodations || [],
+    flights: flights || [],
+    activities: activities || [],
+    expenses: totalExpenses,
+    itineraryDays: itineraryDays || []
+  }
+}
 
 export const editTripAction = async (formData: any) => {
 

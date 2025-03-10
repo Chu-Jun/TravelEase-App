@@ -28,7 +28,7 @@ const LocationPicker = ({
       setPlacePicker(() => module.PlacePicker);
     });
   }, []);
-  
+
   useEffect(() => {
     setShowTransportIndicator(true); // Enable indicator again when transport modes update
   }, [JSON.stringify(transportModes)]);
@@ -108,9 +108,6 @@ const LocationPicker = ({
                             className="w-full"
                           />
                         )}
-                        <div className="w-10 flex items-center justify-center bg-gray-100">
-                          <FontAwesomeIcon icon={faSearch} className="text-gray-500" />
-                        </div>
                       </div>
                     )}
                   </div>

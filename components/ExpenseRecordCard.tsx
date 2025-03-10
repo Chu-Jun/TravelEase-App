@@ -35,8 +35,8 @@ const ExpenseRecordCard = ({ expenseRecord }: any) => {
     }
 
   return (
-    <Card className="">
-      <div key={expenseRecord.expensesRecordId} className="flex items-center p-4 bg-white shadow-md rounded-lg">
+    <Card className="shadow-md">
+      <div key={expenseRecord.expensesRecordId} className="flex items-center p-4 bg-white border-b-2 border-gray-200 rounded-t-lg">
           {/* Category Icon (Example: You can use dynamic icons for each category) */}
           <div className="w-10 h-10 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full mr-4">
             <FontAwesomeIcon icon={icon}></FontAwesomeIcon>

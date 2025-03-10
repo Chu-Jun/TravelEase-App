@@ -68,13 +68,18 @@ export default function Home() {
     });
   }
 
+  function closeForm(){
+    setIsMobileFormExpanded(false);
+    return true;
+  }
+
   return (
     <div className="App">
       <div
         className="h-[60vh] md:h-[40vh] lg:h-screen bg-fixed bg-cover bg-center"
         style={{ backgroundImage: `url('/assets/landing-page-bg.png')` }}
       >
-        <div className="absolute top-[10vh] md:top-[13vh] lg:top-[20vh] w-full px-4 md:mt-44">
+        <div className="absolute top-[27vh] md:top-[27vh] lg:top-[20vh] w-full px-4 md:mt-44">
           <p
             className={`${ibm_plex_mono.className} text-white text-3xl md:text-4xl font-bold leading-tight lg:w-[35%] lg:text-6xl lg:leading-snug drop-shadow-2xl text-center md:text-left md:ml-12`}
           >
@@ -82,28 +87,34 @@ export default function Home() {
           </p>
           
           {/* Mobile View: Collapsed Form Initially */}
-          <div className="mt-8 md:hidden">
+          <div className="md:hidden">
             <Button 
               onClick={() => setIsMobileFormExpanded(!isMobileFormExpanded)}
-              className="w-full bg-secondary text-white mb-4"
+              className="w-full bg-secondary text-white my-4"
             >
               {isMobileFormExpanded ? "Hide Planning Form" : "Plan Your Trip"}
             </Button>
             
             {isMobileFormExpanded && (
-              <div className="bg-blue-50/90 rounded-xl p-4">
+              <div className="absolute -top-20 mx-4 z-50 bg-blue-50/90 rounded-xl p-4">
+                <button 
+                  className="float-right"
+                  onClick={() => setIsMobileFormExpanded(false)}
+                >
+                  X
+                </button>
                 <Form {...form}>
                   <form onSubmit={(e) => {
                       e.preventDefault();
                       form.handleSubmit(onSubmit)(e);
                   }}>
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-4 w-full">
                       <FormField
                         control={form.control}
                         name="tripName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-primary font-medium">Destination</FormLabel>
+                            <FormLabel className="text-title font-medium">Destination</FormLabel>
                             <FormControl>
                               <Input className="bg-white" placeholder="Plan a new trip to:" {...field} />
                             </FormControl>
@@ -118,7 +129,7 @@ export default function Home() {
                           name="tripStartDate"
                           render={({ field }) => (
                             <FormItem className="flex-1">
-                              <FormLabel className="text-primary font-medium">Start Date</FormLabel>
+                              <FormLabel className="text-title font-medium">Start Date</FormLabel>
                               <FormControl>
                                 <Input className="bg-white" type="date" {...field} />
                               </FormControl>
@@ -132,7 +143,7 @@ export default function Home() {
                           name="tripEndDate"
                           render={({ field }) => (
                             <FormItem className="flex-1">
-                              <FormLabel className="text-primary font-medium">End Date</FormLabel>
+                              <FormLabel className="text-title font-medium">End Date</FormLabel>
                               <FormControl>
                                 <Input className="bg-white" type="date" {...field} />
                               </FormControl>
@@ -148,14 +159,14 @@ export default function Home() {
                           name="tag"
                           render={({ field }) => (
                             <FormItem className="flex-1">
-                              <FormLabel className="text-primary font-medium">Trip Type</FormLabel>
+                              <FormLabel className="text-title font-medium">Trip Type</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                                 <FormControl>
                                   <SelectTrigger className="bg-white">
                                     <SelectValue placeholder="Tag" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent className="bg-white text-primary">
+                                <SelectContent className="bg-white text-black">
                                   <SelectItem value="Local">Local</SelectItem>
                                   <SelectItem value="Abroad">Abroad</SelectItem>
                                 </SelectContent>
@@ -170,14 +181,14 @@ export default function Home() {
                           name="touristNum"
                           render={({ field }) => (
                             <FormItem className="flex-1">
-                              <FormLabel className="text-primary font-medium">Travelers</FormLabel>
+                              <FormLabel className="text-title font-medium">Travelers</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                                 <FormControl>
                                   <SelectTrigger className="bg-white">
                                     <SelectValue placeholder="Travelers" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent className="bg-white text-primary">
+                                <SelectContent className="bg-white text-black">
                                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
                                     <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
                                   ))}
@@ -200,7 +211,7 @@ export default function Home() {
           </div>
           
           {/* Desktop/Tablet View: Horizontal Form */}
-          <div className="hidden md:block bg-blue-50/70 rounded-xl p-4 m-8 mt-36">
+          <div className="hidden md:block bg-blue-50/70 rounded-xl p-4 m-8 mt-36 sticky">
             <div className="flex gap-0 items-center w-full">
               <Form {...form}>
                 <form onSubmit={(e) => {
@@ -285,7 +296,7 @@ export default function Home() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="bg-secondary text-white mt-0 ml-4" disabled={form.formState.isSubmitting}>
+                    <Button type="submit" className="bg-primary text-white mt-0 ml-4" disabled={form.formState.isSubmitting}>
                       {form.formState.isSubmitting ? "Creating Trip..." : "Start Planning"}
                     </Button>
                   </div>
@@ -297,7 +308,7 @@ export default function Home() {
       </div>
       
       {/* Must Visit Section - Mobile Optimized */}
-      <div className="w-full flex flex-col text-primary text-center items-center gap-y-4 md:justify-center mt-8 px-4">
+      <div className="w-full flex flex-col text-title text-center items-center gap-y-4 md:justify-center mt-8 px-4">
         <p
           className={`${ibm_plex_mono.className} text-3xl md:text-4xl font-extrabold leading-none drop-shadow-xl`}
         >

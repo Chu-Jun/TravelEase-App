@@ -89,12 +89,12 @@ const ExpenseTrackingPage: React.FC = () => {
   }, [selectedTrip]);
 
   if (isLoading) {
-    return <div className="flex mt-16 justify-center items-center h-screen">Loading trips...</div>;
+    return <div className="flex mt-16 justify-center items-center h-screen bg-background">Loading trips...</div>;
   }
 
   if (trips.length === 0) {
     return (
-      <div className="flex mt-16 flex-col items-center justify-center h-screen">
+      <div className="flex mt-16 flex-col items-center justify-center h-screen bg-background">
         <p className="mb-4">No trips found. Create your first trip!</p>
       </div>
     );
@@ -129,13 +129,13 @@ const ExpenseTrackingPage: React.FC = () => {
   
 
   return (
-    <div className="flex mt-16">
+    <div className="flex mt-16 bg-background">
       {/* Left section for trip list */}
-      <div className="w-1/4 p-4 space-y-4 bg-slate-300 min-h-screen">
+      <div className="w-1/4 p-4 space-y-4 bg-white min-h-screen">
         <h2 className="text-3xl font-bold">My Trip</h2>
         <DropdownMenu>
           <DropdownMenuTrigger>
-            <span className="px-12 py-1 font-medium text-gray-800 hover:text-black bg-gray-400 rounded-md">
+            <span className="px-12 py-1 font-medium text-gray-800 hover:text-black bg-gray-300 rounded-md">
               {selectedTrip?.tripname}
               <FontAwesomeIcon className="ml-4" icon={faCaretDown} />
             </span>
@@ -152,7 +152,7 @@ const ExpenseTrackingPage: React.FC = () => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <div className="flex items-center justify-between bg-red-50 shadow-md rounded-md p-6 w-full">
+        <div className="flex items-center justify-between bg-blue-100 shadow-md rounded-md p-6 w-full">
           {selectedTrip?.budget ? (
             <div>
               <p className="text-gray-600 text-sm">Current Balance</p>

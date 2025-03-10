@@ -73,7 +73,7 @@ export default function ExpenseCreationDialog({tripData}: any) {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button
-                    className="bg-secondary text-white mt-8 md:w-1/3 md:self-center min-w-fit"
+                    className="bg-primary text-white mt-8 md:w-1/3 md:self-center min-w-fit"
                 >
                     + Add Expense Record
                 </Button>
@@ -81,7 +81,7 @@ export default function ExpenseCreationDialog({tripData}: any) {
             <DialogContent className="text-black w-4/5 rounded-lg">
                 <DialogHeader>
                     <DialogTitle>
-                        <p className="text-primary font-extrabold">Add Expense Record</p>
+                        <p className="text-title font-extrabold">Add Expense Record</p>
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
@@ -140,7 +140,7 @@ export default function ExpenseCreationDialog({tripData}: any) {
                                                 <SelectValue placeholder="Select Category" />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent className="bg-white text-primary">
+                                        <SelectContent className="bg-white text-black">
                                             <SelectItem value="FnB">Food & Beverage</SelectItem>
                                             <SelectItem value="Accommodation">Accommodation</SelectItem>
                                             <SelectItem value="Transportation">Transportation</SelectItem>

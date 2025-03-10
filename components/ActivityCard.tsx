@@ -41,15 +41,15 @@ const ActivityCard = ({ booking }: { booking: ActivityBooking }) => {
       };
 
     return (
-      <Card>
-        <CardHeader className="bg-blue-50 pb-2 flex-row justify-between">
+      <Card className="rounded-lg">
+        <CardHeader className="rounded-lg bg-white pb-2 flex-row justify-between content-center">
           <CardTitle className="text-lg font-medium text-blue-600">
             Activity: {booking.activityname}
           </CardTitle>
           {/* Dropdown Menu with click handlers instead of Dialog components */}
         <DropdownMenu>
             <DropdownMenuTrigger>
-            <span className="font-extrabold text-gray-800 hover:text-black">...</span>
+            <span className="font-extrabold text-gray-800 hover:text-primary">...</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
             <DropdownMenuItem onSelect={(e) => {

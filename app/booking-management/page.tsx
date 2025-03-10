@@ -156,12 +156,12 @@ const BookingManagementPage = () => {
   };
 
   if (isLoading) {
-    return <div className="flex mt-16 justify-center items-center h-screen">Loading trips...</div>;
+    return <div className="flex mt-16 justify-center items-center h-screen bg-background">Loading trips...</div>;
   }
 
   if (trips.length === 0) {
     return (
-      <div className="flex mt-16 flex-col items-center justify-center h-screen">
+      <div className="flex mt-16 flex-col items-center justify-center h-screen bg-background">
         <p className="mb-4">No trips found. Create your first trip!</p>
         <TripCreationDialog />
       </div>
@@ -169,9 +169,9 @@ const BookingManagementPage = () => {
   }
 
   return (
-    <div className="flex mt-16">
+    <div className="flex mt-16 bg-background">
       {/* Left section for trip list */}
-      <div className="w-1/4 p-4 space-y-4 bg-slate-300 min-h-screen">
+      <div className="w-1/4 p-4 space-y-4 bg-white min-h-screen">
         <h2 className="text-3xl font-bold">My Trip</h2>
         <div className="space-y-4">
           {trips.map((trip) => (
@@ -185,7 +185,6 @@ const BookingManagementPage = () => {
               }`}
             >
               <PlannedTripCard
-                imageSrc={trip.imageSrc}
                 tripTitle={trip.tripname}
                 touristNum={trip.touristnum}
                 duration={calculateDuration(trip.tripstartdate, trip.tripenddate)}
@@ -205,14 +204,9 @@ const BookingManagementPage = () => {
             <BookingCreationDialog tripData={selectedTrip}/>
           </div>
           
-          {/* Calendar view */}
-          <div className="mb-8">
-            {/* <BookingsCalendar bookings={allBookings} /> */}
-          </div>
-          
           {/* Tabs for different booking types */}
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-6 mb-4">
+          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full ">
+            <TabsList className="grid grid-flow-col auto-cols-max w-full mb-4 text-lg">
               <TabsTrigger value="all">All Bookings</TabsTrigger>
               <TabsTrigger value="accommodation">Accommodations</TabsTrigger>
               <TabsTrigger value="flight">Flights</TabsTrigger>
@@ -288,11 +282,11 @@ const BookingManagementPage = () => {
               {activityBookings.length === 0 && flightBookings.length === 0 ? (
                 <Card>
                   <CardContent className="pt-6 text-center">
-                    No activity bookings found.
+                    No activity and flight bookings found.
                   </CardContent>
                 </Card>
               ) : (
-                <BookingsCalendar tripStartDate={selectedTrip.tripstartdate} activityBooking={activityBookings} flightBooking={flightBookings} accommodationBooking={accommodationBookings}/>
+                <BookingsCalendar tripStartDate={selectedTrip.tripstartdate} activityBooking={activityBookings} flightBooking={flightBookings}/>
               )}
             </TabsContent>
           </Tabs>

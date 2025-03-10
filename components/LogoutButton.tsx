@@ -1,12 +1,10 @@
 // components/LogoutButton.tsx
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { Button } from './ui/button'
 import { createClient } from '@/utils/supabase/client'
 
 export default function LogoutButton() {
-  const router = useRouter()
   
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -26,9 +24,10 @@ export default function LogoutButton() {
       type="button" 
       size="sm" 
       variant="ghost"
-      className="w-full text-left"
+      className="w-full text-left px-0 py-0 font-normal justify-start"
     >
       Sign out
     </Button>
+
   )
 }
