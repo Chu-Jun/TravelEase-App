@@ -248,13 +248,15 @@ const BookingManagementPage = () => {
 
           {/* Tabs for different booking types */}
           <Tabs className="md:w-full lg:w-full" defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex w-full mb-4 text-lg border-b border-gray-300">
-            <TabsTrigger className="flex-1" value="all">All Bookings</TabsTrigger>
-            <TabsTrigger className="flex-1" value="accommodation">Accommodations</TabsTrigger>
-            <TabsTrigger className="flex-1" value="flight">Flights</TabsTrigger>
-            <TabsTrigger className="flex-1" value="activity">Activities</TabsTrigger>
-            <TabsTrigger className="flex-1" value="calendar">View in Calendar</TabsTrigger>
-          </TabsList>
+          <div className="hidden md:block">
+            <TabsList className="flex w-full mb-4 text-lg border-b border-gray-300">
+              <TabsTrigger className="flex-1" value="all">All Bookings</TabsTrigger>
+              <TabsTrigger className="flex-1" value="accommodation">Accommodations</TabsTrigger>
+              <TabsTrigger className="flex-1" value="flight">Flights</TabsTrigger>
+              <TabsTrigger className="flex-1" value="activity">Activities</TabsTrigger>
+              <TabsTrigger className="flex-1" value="calendar">View in Calendar</TabsTrigger>
+            </TabsList>
+          </div>
             
             <TabsContent value="all" className="space-y-4">
               {activityBookings.length === 0 && accommodationBookings.length === 0 && flightBookings.length === 0 ? (
