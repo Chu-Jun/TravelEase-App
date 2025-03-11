@@ -283,7 +283,7 @@ export default function Home() {
                           <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Travelers" />
+                                <SelectValue placeholder="Num of Travelers" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="bg-white text-title">
