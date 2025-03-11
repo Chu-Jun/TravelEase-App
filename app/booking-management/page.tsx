@@ -216,6 +216,7 @@ const BookingManagementPage = () => {
                   duration={calculateDuration(trip.tripstartdate, trip.tripenddate)}
                   tag={trip.tag}
                   trip={trip}
+                  active={trip.tripid === selectedTrip?.tripid}
                 />
               </div>
             ))}

@@ -75,7 +75,7 @@ export default function BudgetCreationDialog({tripData, open, onOpenChange}: any
             <DialogContent className="text-black w-4/5 rounded-lg">
                 <DialogHeader>
                     <DialogTitle>
-                        <p className="text-primary font-extrabold">Edit Budget For Trip To {tripData?.tripname}</p>
+                        <p className="text-title font-extrabold">Edit Budget For Trip To {tripData?.tripname}</p>
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>

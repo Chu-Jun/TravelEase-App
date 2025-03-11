@@ -136,12 +136,6 @@ const ItineraryPlanningPage = () => {
 
   return (
     <div className="mt-16">
-      {/* Mobile header with menu toggle */}
-      <div className="md:hidden flex justify-between items-center p-4 bg-white border-b">
-        <h2 className="text-xl font-bold">
-          {selectedTrip ? "Overview of " + selectedTrip.tripname + " Trip": "My Trips"}
-        </h2>
-      </div>
 
       <div className="flex flex-col md:flex-row">
         {/* Sidebar for trip list - becomes an overlay on mobile */}
@@ -185,6 +179,7 @@ const ItineraryPlanningPage = () => {
                   duration={calculateDuration(trip.tripstartdate, trip.tripenddate)}
                   tag={trip.tag}
                   trip={trip}
+                  active={trip.tripid === selectedTrip.tripid}
                 />
               </div>
             ))}
@@ -194,14 +189,14 @@ const ItineraryPlanningPage = () => {
         {/* Main content */}
         {selectedTrip && (
           <div className="w-full md:w-3/4 p-4 bg-background">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold hidden md:block">Overview of {selectedTrip.tripname} Trip</h2>
+            <div className="flex justify-between items-center my-4 md:mb-6 md:mt-0">
+              <h2 className="text-2xl md:text-3xl font-bold md:block">Overview of {selectedTrip.tripname} Trip</h2>
             </div>
   
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Trip Dates Section - Shows at the top on mobile, regular position on desktop */}
               <div className="md:hidden lg:hidden">
-                <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm md:mb-6">
                   <div 
                     className="flex justify-between items-center mb-2 cursor-pointer"
                     onClick={() => toggleSection('calendar')}
@@ -291,7 +286,7 @@ const ItineraryPlanningPage = () => {
                   )}
                   
                   <button
-                    className="w-full mt-4 bg-blue-50 text-blue-600 py-2 rounded-lg border border-blue-200"
+                    className="w-full mt-4 bg-secondary text-white py-2 rounded-lg border border-blue-200"
                     onClick={handleSeeDetails}
                   >
                     Plan Your Itinerary
@@ -397,7 +392,7 @@ const ItineraryPlanningPage = () => {
               
               {/* Budget section for mobile - shown at bottom */}
               <div className="md:hidden">
-                <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
+                <div className="bg-white p-4 rounded-lg shadow-sm">
                   <div 
                     className="flex justify-between items-center mb-3 cursor-pointer"
                     onClick={() => toggleSection('budget')}

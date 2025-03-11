@@ -477,7 +477,7 @@ const optimizeRoute = async (day) => {
   return (
     <div className="flex flex-col md:flex-row mt-16">
       {/* Sidebar */}
-      <div className="w-full md:w-1/4 bg-white p-4">
+      <div className="hidden md:block w-full md:w-1/4 bg-white p-4">
         <ul className="space-y-4">
           <li className="text-gray-800 font-semibold">Overview</li>
           <li className="text-gray-800 font-semibold">

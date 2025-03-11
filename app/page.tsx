@@ -212,18 +212,18 @@ export default function Home() {
           
           {/* Desktop/Tablet View: Horizontal Form */}
           <div className="hidden md:block bg-blue-50/70 rounded-xl p-4 m-8 mt-36 sticky">
-            <div className="flex gap-0 items-center w-full">
+            <div className="w-full max-w-5xl mx-auto p-1">
               <Form {...form}>
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     form.handleSubmit(onSubmit)(e);
                 }}>
-                  <div className="flex flex-wrap md:flex-nowrap gap-0 items-center w-full">
+                  <div className="flex flex-wrap md:flex-nowrap w-full">
                     <FormField
                       control={form.control}
                       name="tripName"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[40%] p-2 rounded-l">
+                        <FormItem className="w-full rounded-s-lg">
                           <FormControl>
                             <Input className="bg-white" placeholder="Plan a new trip to:" {...field} />
                           </FormControl>
@@ -235,7 +235,7 @@ export default function Home() {
                       control={form.control}
                       name="tripStartDate"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[20%] p-2">
+                        <FormItem className="w-full rounded-none">
                           <FormControl>
                             <Input className="bg-white" type="date" placeholder="Start Date" {...field} />
                           </FormControl>
@@ -247,7 +247,7 @@ export default function Home() {
                       control={form.control}
                       name="tripEndDate"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[20%] p-2">
+                        <FormItem className="w-full rounded-none">
                           <FormControl>
                             <Input className="bg-white" type="date" placeholder="End Date" {...field} />
                           </FormControl>
@@ -259,14 +259,14 @@ export default function Home() {
                       control={form.control}
                       name="tag"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[15%] p-2">
+                        <FormItem className="w-full rounded-none">
                           <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger className="bg-white">
                                 <SelectValue placeholder="Tag" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="bg-white text-primary">
+                            <SelectContent className="bg-white text-title">
                               <SelectItem value="Local">Local</SelectItem>
                               <SelectItem value="Abroad">Abroad</SelectItem>
                             </SelectContent>
@@ -279,14 +279,14 @@ export default function Home() {
                       control={form.control}
                       name="touristNum"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[15%] p-2 rounded-r">
+                        <FormItem className="w-full rounded-s-lg">
                           <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger className="bg-white">
                                 <SelectValue placeholder="Travelers" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="bg-white text-primary">
+                            <SelectContent className="bg-white text-title">
                               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
                                 <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
                               ))}

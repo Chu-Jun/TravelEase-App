@@ -95,9 +95,9 @@ const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses }) => {
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-4">
       <h3 className="text-xl font-semibold mb-2">Expenses by Category</h3>
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md max-h-full flex justify-center ">
         <Pie data={pieChartData} options={options} />
       </div>
     </div>

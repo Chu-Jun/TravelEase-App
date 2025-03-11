@@ -16,8 +16,10 @@ export default {
         ring: "hsl(var(--ring))",
         background: "#F4F4F4",
         primary: "#0097D1",
-        secondary: "#E6615C",
+        secondary: "#003667",
         lightblue: "#E5F5FB",
+        darkblue: "#003667",
+        greyblue: "#c9e5f0",
         title: "#1C3C64",
         foreground: "hsl(var(--foreground))",
         destructive: {

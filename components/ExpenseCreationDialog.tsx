@@ -73,7 +73,7 @@ export default function ExpenseCreationDialog({tripData}: any) {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button
-                    className="bg-primary text-white mt-8 md:w-1/3 md:self-center min-w-fit"
+                    className="bg-secondary text-white mt-2 md:w-1/3 md:self-center min-w-fit"
                 >
                     + Add Expense Record
                 </Button>
