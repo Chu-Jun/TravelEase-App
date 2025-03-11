@@ -79,7 +79,7 @@ export default function Home() {
         className="h-[60vh] md:h-[40vh] lg:h-screen bg-fixed bg-cover bg-center"
         style={{ backgroundImage: `url('/assets/landing-page-bg.png')` }}
       >
-        <div className="absolute top-[27vh] md:top-[27vh] lg:top-[20vh] w-full px-4 md:mt-44">
+        <div className="relative top-[27vh] md:top-[27vh] lg:top-[20vh] w-full px-4 md:mt-12">
           <p
             className={`${ibm_plex_mono.className} text-white text-3xl md:text-4xl font-bold leading-tight lg:w-[35%] lg:text-6xl lg:leading-snug drop-shadow-2xl text-center md:text-left md:ml-12`}
           >
@@ -212,18 +212,18 @@ export default function Home() {
           
           {/* Desktop/Tablet View: Horizontal Form */}
           <div className="hidden md:block bg-blue-50/70 rounded-xl p-4 m-8 mt-36 sticky">
-            <div className="w-full max-w-5xl mx-auto p-1">
+            <div className="flex gap-0 items-center w-full">
               <Form {...form}>
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     form.handleSubmit(onSubmit)(e);
                 }}>
-                  <div className="flex flex-wrap md:flex-nowrap w-full">
+                  <div className="flex flex-wrap md:flex-nowrap gap-0 items-center w-full">
                     <FormField
                       control={form.control}
                       name="tripName"
                       render={({ field }) => (
-                        <FormItem className="w-full rounded-s-lg">
+                        <FormItem className="w-full md:w-[40%] p-2 rounded-l">
                           <FormControl>
                             <Input className="bg-white" placeholder="Plan a new trip to:" {...field} />
                           </FormControl>
@@ -235,7 +235,7 @@ export default function Home() {
                       control={form.control}
                       name="tripStartDate"
                       render={({ field }) => (
-                        <FormItem className="w-full rounded-none">
+                        <FormItem className="w-full md:w-[20%] p-2">
                           <FormControl>
                             <Input className="bg-white" type="date" placeholder="Start Date" {...field} />
                           </FormControl>
@@ -247,7 +247,7 @@ export default function Home() {
                       control={form.control}
                       name="tripEndDate"
                       render={({ field }) => (
-                        <FormItem className="w-full rounded-none">
+                        <FormItem className="w-full md:w-[20%] p-2">
                           <FormControl>
                             <Input className="bg-white" type="date" placeholder="End Date" {...field} />
                           </FormControl>
@@ -259,7 +259,7 @@ export default function Home() {
                       control={form.control}
                       name="tag"
                       render={({ field }) => (
-                        <FormItem className="w-full rounded-none">
+                        <FormItem className="w-full md:w-[15%] p-2">
                           <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger className="bg-white">
@@ -279,7 +279,7 @@ export default function Home() {
                       control={form.control}
                       name="touristNum"
                       render={({ field }) => (
-                        <FormItem className="w-full rounded-s-lg">
+                        <FormItem className="w-full md:w-[15%] p-2 rounded-r">
                           <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger className="bg-white">
