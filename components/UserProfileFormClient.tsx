@@ -84,7 +84,7 @@ export default function UserProfileFormClient({initialData}: UserProfileFormProp
     }
 
     return (
-        <div className="m-32 p-4 text-black bg-white rounded-md">
+        <div className="mt-24 mx-8 md:m-32 p-4 text-black bg-white rounded-md">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField

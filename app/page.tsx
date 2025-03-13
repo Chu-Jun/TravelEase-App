@@ -79,7 +79,7 @@ export default function Home() {
         className="h-[60vh] md:h-[40vh] lg:h-screen bg-fixed bg-cover bg-center"
         style={{ backgroundImage: `url('/assets/landing-page-bg.png')` }}
       >
-        <div className="absolute top-[27vh] md:top-[27vh] lg:top-[20vh] w-full px-4 md:mt-44">
+        <div className="relative top-[27vh] md:top-[27vh] lg:top-[20vh] w-full px-4 md:mt-12">
           <p
             className={`${ibm_plex_mono.className} text-white text-3xl md:text-4xl font-bold leading-tight lg:w-[35%] lg:text-6xl lg:leading-snug drop-shadow-2xl text-center md:text-left md:ml-12`}
           >
@@ -266,7 +266,7 @@ export default function Home() {
                                 <SelectValue placeholder="Tag" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="bg-white text-primary">
+                            <SelectContent className="bg-white text-title">
                               <SelectItem value="Local">Local</SelectItem>
                               <SelectItem value="Abroad">Abroad</SelectItem>
                             </SelectContent>
@@ -283,10 +283,10 @@ export default function Home() {
                           <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Travelers" />
+                                <SelectValue placeholder="Num of Travelers" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="bg-white text-primary">
+                            <SelectContent className="bg-white text-title">
                               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
                                 <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
                               ))}

@@ -11,15 +11,24 @@ import {
 import TripEditDialog from "@/components/TripEditDialog";
 import TripDeletionDialog from "@/components/TripDeletionDialog";
 
-const PlannedTripCard = ({ tripTitle, touristNum, duration, tag, trip }) => {
+const PlannedTripCard = ({ tripTitle, touristNum, duration, tag, trip, active }) => {
   // Add state to control dialog visibility
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   return (
-    <Card className="bg-lightblue shadow-md rounded-2xl p-4 flex flex-col items-start max-w-lg m-4">
+    
+    <Card className={`shadow-md rounded-2xl p-4 flex flex-col items-start max-w-lg m-4 ${
+        active 
+          ? "bg-lightblue" 
+          : "bg-greyblue"
+      }`}>
       {/* Tag above trip title */}
-      <span className="bg-primary text-white text-sm font-semibold px-2 py-1 rounded">
+      <span className={`text-white text-sm font-semibold px-2 py-1 rounded ${
+      active 
+        ? "bg-primary" 
+        : "bg-primary"
+    }`}>
         {tag}
       </span>
 

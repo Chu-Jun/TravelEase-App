@@ -1,7 +1,7 @@
 // RouteOptimizationControls component
 const RouteOptimizationControls = ({ dayLabel, onOptimize, loading, optimizationType, setOptimizationType, transportMode, setTransportMode }: any) => {
     return (
-      <div className="flex items-center space-x-3 mt-2 mb-4">
+      <div className="flex flex-col items-start md:flex-row md:items-center space-x-3 mt-2 mb-4 max-w-full">
         <div className="font-medium text-sm">Optimize By:</div>
         <div className="flex items-center space-x-2">
           <select 
