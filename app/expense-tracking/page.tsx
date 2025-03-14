@@ -185,8 +185,9 @@ const ExpenseTrackingPage: React.FC = () => {
         </div>
 
         {/* Expense creation button - larger for mobile */}
-        <div className="w-full mt-4">
+        <div className="w-full mt-4 flex flex-col">
           <ExpenseCreationDialog tripData={selectedTrip} />
+          <BudgetEditDialog tripData={selectedTrip} />
         </div>
       </div>
       
