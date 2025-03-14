@@ -11,6 +11,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown, faChartPie, faList } from "@fortawesome/free-solid-svg-icons";
 import BudgetCreationDialog from "@/components/BudgetCreationDialog";
+import BudgetEditDialog from "@/components/BudgetEditDialog";
 import ExpenseCreationDialog from "@/components/ExpenseCreationDialog";
 import ExpenseRecordCard from "@/components/ExpenseRecordCard";
 import ExpensePieChart from "@/components/ExpensePieChart";
@@ -310,6 +311,7 @@ const ExpenseTrackingPage: React.FC = () => {
         </div>
 
         <ExpenseCreationDialog tripData={selectedTrip} />
+        <BudgetEditDialog tripData={selectedTrip} />
         
         <div className="mt-4">
           <h3 className="text-lg font-bold text-gray-700">Latest Activity</h3>

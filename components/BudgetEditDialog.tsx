@@ -23,7 +23,7 @@ const formSchema = z.object({
     budget: z.string(),
 })
 
-export default function BudgetCreationDialog({tripData, open, onOpenChange}: any) {
+export default function BudgetEditDialog({tripData, open, onOpenChange}: any) {
     const { toast } = useToast();
     const router = useRouter();
 
@@ -35,7 +35,7 @@ export default function BudgetCreationDialog({tripData, open, onOpenChange}: any
             tripName: tripData?.tripname,
             tripStartDate: tripData?.tripstartdate,
             tripEndDate: tripData?.tripenddate,
-            budget: "",
+            budget: tripData?.budget,
         },
     });
 
@@ -67,15 +67,15 @@ export default function BudgetCreationDialog({tripData, open, onOpenChange}: any
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>
                 <Button
-                    className="bg-secondary text-white md:w-1/3 md:self-center min-w-fit md:mt-2"
+                    className="bg-gray-400 text-white mt-2 md:w-1/3 md:self-center min-w-fit md:ml-2"
                 >
-                    Create Budget
+                    Edit Budget
                 </Button>
             </DialogTrigger>
             <DialogContent className="text-black w-4/5 rounded-lg">
                 <DialogHeader>
                     <DialogTitle>
-                        <p className="text-title font-extrabold">Create Budget For Trip To {tripData?.tripname}</p>
+                        <p className="text-title font-extrabold">Edit Budget For Trip To {tripData?.tripname}</p>
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
@@ -133,7 +133,7 @@ export default function BudgetCreationDialog({tripData, open, onOpenChange}: any
                                 <FormItem>
                                     <FormLabel>Trip Budget</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Add Budget ..." {...field} />
+                                        <Input placeholder="Trip Budget" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -142,9 +142,9 @@ export default function BudgetCreationDialog({tripData, open, onOpenChange}: any
 
                         <Button type="submit" className="bg-secondary text-white mt-8" disabled={form.formState.isSubmitting}>
                             {form.formState.isSubmitting ? (
-                                <span>Creating...</span>
+                                <span>Updating...</span>
                             ) : (
-                                <span>Create</span>
+                                <span>Update</span>
                             )}
                         </Button>
                     </form>
