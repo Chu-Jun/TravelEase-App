@@ -24,8 +24,6 @@ const ItineraryPlanningPage = () => {
   });
   const router = useRouter();
 
-  // Other functions (fetchTrips, fetchTripDetails, calculateDuration, etc.) remain unchanged
-
   useEffect(() => {
     // Fetch trip data on component mount
     const fetchTrips = async () => {

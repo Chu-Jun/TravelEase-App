@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown, faChartPie, faList } from "@fortawesome/free-solid-svg-icons";
+import TripCreationDialog from "@/components/TripCreationDialog";
 import BudgetCreationDialog from "@/components/BudgetCreationDialog";
 import BudgetEditDialog from "@/components/BudgetEditDialog";
 import ExpenseCreationDialog from "@/components/ExpenseCreationDialog";
@@ -98,6 +99,7 @@ const ExpenseTrackingPage: React.FC = () => {
     return (
       <div className="flex mt-16 flex-col items-center justify-center h-screen bg-background">
         <p className="mb-4">No trips found. Create your first trip!</p>
+        <TripCreationDialog />
       </div>
     );
   }
