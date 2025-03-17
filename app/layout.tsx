@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import HeaderAuth from "@/components/header-auth";
 import { inter } from "./fonts";
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/context/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,18 +28,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <div className="bg-background mt-12 min-h-screen max-w-screen">
-          <Navbar>
-            <HeaderAuth />
-          </Navbar>
-          {children}
-        </div>
-        <Toaster />
-      </body>
-    </html>
+    
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <AuthProvider>
+          <div className="bg-background mt-12 min-h-screen max-w-screen">
+          
+            <Navbar>
+              <HeaderAuth />
+            </Navbar>
+            {children}
+          <Toaster />
+          
+          </div>
+          </AuthProvider>
+        </body>
+      </html>
+    
+    
   );
 }

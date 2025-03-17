@@ -121,6 +121,11 @@ export const signInAction = async (formData: FormValues) => {
       status: "error",
       message: "Wrong Email/Password",
     };
+  }else{
+    return {
+      status: "success",
+      message: "Sign In Successful",
+    };
   }
 
   return redirect("/profile");
@@ -201,6 +206,13 @@ export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
   return redirect("/");
+};
+
+export const getUserDetail = async () => {
+  const supabase = await createClient();
+  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+
+  return authUser;
 };
 
 export const userUpdateProfileAction = async (formData: any) => {

@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+import { useAuth } from "@/context/AuthContext";
+
 // Define types for navigation links and user
 interface NavLink {
   href: string;
@@ -27,7 +29,7 @@ interface User {
 }
 
 export default function AuthButton() {
-  // Fix TypeScript error by properly typing the state
+  const { isAuth, role, updateAuthStatus } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [profileLink, setProfileLink] = useState("/profile");
   const [loading, setLoading] = useState(true);
@@ -70,27 +72,7 @@ export default function AuthButton() {
     loadUserData();
   }, []);
 
-  return (
-    <div className="w-full flex justify-end items-center">
-      {/* Desktop Navigation - Now right-aligned */}
-      <div className="hidden md:flex items-center gap-10">
-        {navLinks.map((link: NavLink) => (
-          <Link key={link.href} href={link.href} className="font-semibold">
-            {link.label}
-          </Link>
-        ))}
-        <UserMenu user={user} profileLink={profileLink} />
-      </div>
-
-      {/* Mobile Navigation - Now right-aligned */}
-      <div className="md:hidden flex items-center gap-2">
-        <MobileNavigation navLinks={navLinks} user={user} profileLink={profileLink} />
-      </div>
-    </div>
-  );
-}
-
-// Client component for user menu dropdown
+  // Client component for user menu dropdown
 function UserMenu({ user, profileLink }: { user: User | null; profileLink: string }) {
   return (
     <DropdownMenu>
@@ -98,7 +80,7 @@ function UserMenu({ user, profileLink }: { user: User | null; profileLink: strin
         <FontAwesomeIcon icon={faUser} size="xl" style={{ width: "24px", height: "24px" }} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {user ? (
+        {isAuth ? (
           <>
             <DropdownMenuItem>
               <Link href={profileLink} className="w-full">View Profile</Link>
@@ -155,7 +137,7 @@ function MobileNavigation({
         <DropdownMenuSeparator />
         
         {/* User Account Options */}
-        {user ? (
+        {isAuth ? (
           <>
             <DropdownMenuItem>
               <Link href={profileLink} className="w-full">View Profile</Link>
@@ -178,3 +160,26 @@ function MobileNavigation({
     </DropdownMenu>
   );
 }
+
+  return (
+    <div className="w-full flex justify-end items-center">
+      {/* Desktop Navigation - Now right-aligned */}
+      <div className="hidden md:flex items-center gap-10">
+        {navLinks.map((link: NavLink) => (
+          <Link key={link.href} href={link.href} className="font-semibold">
+            {link.label}
+          </Link>
+        ))}
+        <UserMenu user={user} profileLink={profileLink} />
+      </div>
+
+      {/* Mobile Navigation - Now right-aligned */}
+      <div className="md:hidden flex items-center gap-2">
+        <MobileNavigation navLinks={navLinks} user={user} profileLink={profileLink} />
+      </div>
+    </div>
+  );
+}
+
+
+

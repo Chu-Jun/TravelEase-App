@@ -6,6 +6,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -16,7 +17,8 @@ import { Separator } from "@/components/ui/separator"
 import { EyeIcon, EyeOffIcon } from "lucide-react"
 
 import Link from "next/link";
-import { createElement, useState } from "react"
+import { useAuth } from "@/context/AuthContext"
+import { createElement, useEffect, useState } from "react"
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -32,6 +34,11 @@ export default function Login() {
 
   const { toast } = useToast()
 
+  const { isAuth } = useAuth();
+  const { updateAuthStatus } = useAuth();
+
+  const router = useRouter();
+
   interface FormValues {
     email: string;
     password: string;
@@ -45,6 +52,13 @@ export default function Login() {
       },
   })
 
+  useEffect(() => {
+    console.log(isAuth);
+    if (isAuth) {
+      router.push("/");
+    }
+  }, [isAuth]);
+
   async function onSubmit(values: FormValues) {
 
     const result = await signInAction(values);
@@ -52,7 +66,10 @@ export default function Login() {
     const status = result.status;
     const message = result.message;
 
-    console.log(message);
+    if (status === "success") {
+        updateAuthStatus(true, "user"); // Ensure authentication state updates
+        router.push("/"); // Redirect to home page
+      }
 
     toast({
         variant: status === "error" ? "destructive" : "default",
