@@ -23,6 +23,7 @@ const formSchema = z.object({
   departAirport: z.string().optional(),
   arriveAirport: z.string().optional(),
   departTime: z.string().optional(),
+  arrivalTime: z.string().optional(),
   activityLocationName: z.string().optional(),
   activityName: z.string().optional(),
   activityDate: z.string().optional(),
@@ -30,7 +31,9 @@ const formSchema = z.object({
   activityEndTime: z.string().optional(),
   accommodationName: z.string().optional(),
   checkInDate: z.string().optional(),
+  checkInTime: z.string().optional(),
   checkOutDate: z.string().optional(),
+  checkOutTime: z.string().optional(),
 });
 
 export default function BookingCreationDialog({ tripData }: any) {
@@ -86,7 +89,7 @@ export default function BookingCreationDialog({ tripData }: any) {
           + Add Booking Record
         </Button>
       </DialogTrigger>
-      <DialogContent className="text-black w-4/5 rounded-lg">
+      <DialogContent className="text-black w-4/5 rounded-lg max-h-[70%] overflow-auto">
         <DialogHeader>
           <DialogTitle>
             <p className="text-title font-extrabold">Add Booking Record</p>
@@ -105,21 +108,21 @@ export default function BookingCreationDialog({ tripData }: any) {
               <FormLabel>Select Booking Type</FormLabel>
               <FormControl>
               <RadioGroup.Root value={bookingType} onValueChange={setBookingType}>
-    <div className="flex space-x-4">
-      <div className="bg-primary rounded-lg p-2 text-white">
-        <RadioGroup.Item value="accommodation" id="accommodation" />
-        <label htmlFor="accommodation">Accommodation</label>
-      </div>
-      <div className="bg-primary rounded-lg p-2 text-white">
-        <RadioGroup.Item value="flight" id="flight" />
-        <label htmlFor="flight">Flight</label>
-      </div>
-      <div className="bg-primary rounded-lg p-2 text-white">
-        <RadioGroup.Item value="activity" id="activity" />
-        <label htmlFor="activity">Activity</label>
-      </div>
-    </div>
-  </RadioGroup.Root>
+                <div className="flex space-x-4">
+                  <div className="bg-primary rounded-lg p-2 text-white">
+                    <RadioGroup.Item value="accommodation" id="accommodation" />
+                    <label htmlFor="accommodation">Accommodation</label>
+                  </div>
+                  <div className="bg-primary rounded-lg p-2 text-white">
+                    <RadioGroup.Item value="flight" id="flight" />
+                    <label htmlFor="flight">Flight</label>
+                  </div>
+                  <div className="bg-primary rounded-lg p-2 text-white">
+                    <RadioGroup.Item value="activity" id="activity" />
+                    <label htmlFor="activity">Activity</label>
+                  </div>
+                </div>
+              </RadioGroup.Root>
               </FormControl>
             </FormItem>
 
@@ -170,16 +173,23 @@ export default function BookingCreationDialog({ tripData }: any) {
                     <FormControl><Input placeholder="Enter Depart Airport" {...field} /></FormControl>
                   </FormItem>
                 )} />
+                
+                <FormField control={form.control} name="departTime" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Depart Time</FormLabel>
+                    <FormControl><Input placeholder="Select Depart Time" type="time" {...field} /></FormControl>
+                  </FormItem>
+                )} />
                 <FormField control={form.control} name="arriveAirport" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Arrive Airport</FormLabel>
                     <FormControl><Input placeholder="Enter Arrive Airport" {...field} /></FormControl>
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="departTime" render={({ field }) => (
+                <FormField control={form.control} name="arrivalTime" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Depart Time</FormLabel>
-                    <FormControl><Input placeholder="Select Depart Time" type="time" {...field} /></FormControl>
+                    <FormLabel>Arrival Time</FormLabel>
+                    <FormControl><Input placeholder="Select Arrival Time" type="time" {...field} /></FormControl>
                   </FormItem>
                 )} />
               </>
@@ -236,10 +246,22 @@ export default function BookingCreationDialog({ tripData }: any) {
                     <FormControl><Input placeholder="Select Check In Date" type="date" {...field} /></FormControl>
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="checkInTime" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Check-in Time<span className="text-gray-500"> (Default value: 3.00 PM)</span></FormLabel>
+                    <FormControl><Input placeholder="Select Check In Time" type="time" {...field} /></FormControl>
+                  </FormItem>
+                )} />
                 <FormField control={form.control} name="checkOutDate" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Check-out Date</FormLabel>
                     <FormControl><Input placeholder="Select Check Out Date" type="date" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="checkOutTime" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Check-out Time<span className="text-gray-500"> (Default value: 12.00 PM)</span></FormLabel>
+                    <FormControl><Input placeholder="Select Check Out Time" type="time" {...field} /></FormControl>
                   </FormItem>
                 )} />
               </>

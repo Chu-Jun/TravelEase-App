@@ -1060,7 +1060,9 @@ export const createAccommodationBookingAction = async (formData: any) => {
   const tripid = formData.tripid as string;
   const accommodationname = formData.accommodationName as string;
   const checkindate = formData.checkInDate as string;
+  const checkintime = formData.checkInTime ? formData.checkInTime : "15:00:00";
   const checkoutdate = formData.checkOutDate as string;
+  const checkouttime = formData.checkOutTime ? formData.checkOutTime : "12:00:00";
       
       // Check if location exists
       const { data: existingLocation, error: locError } = await supabase
@@ -1098,7 +1100,9 @@ export const createAccommodationBookingAction = async (formData: any) => {
       tripid: tripid,
       accommodationname: accommodationname,
       checkindate: checkindate,
+      checkintime: checkintime,
       checkoutdate: checkoutdate,
+      checkouttime: checkouttime,
       locationid: locationId,
     });
 
@@ -1140,7 +1144,9 @@ export const editAccommodationBookingAction = async (formData: any) => {
 
   const accommodationname = formData.accommodationName as string;
   const checkindate = formData.checkInDate as string;
+  const checkintime = formData.checkInTime as string;
   const checkoutdate = formData.checkOutDate as string;
+  const checkouttime = formData.checkOutTime as string;
       
       // Check if location exists
       const { data: existingLocation, error: locError } = await supabase
@@ -1177,7 +1183,9 @@ export const editAccommodationBookingAction = async (formData: any) => {
     .update({
       accommodationname: accommodationname,
       checkindate: checkindate,
+      checkintime: checkintime,
       checkoutdate: checkoutdate,
+      checkouttime: checkouttime,
       locationid: locationId,
     }).eq("accbookingid", formData.id);
 
@@ -1235,6 +1243,7 @@ export const createFlightBookingAction = async (formData: any) => {
   const departairport = formData.departAirport as string;
   const arriveairport = formData.arriveAirport as string;
   const departtime = formData.departTime as string;
+  const arrivaltime = formData.arrivalTime as string;
 
   const { data, error } = await supabase
     .from("flightbooking")
@@ -1246,6 +1255,7 @@ export const createFlightBookingAction = async (formData: any) => {
       departairport: departairport,
       arriveairport: arriveairport,
       departtime: departtime,
+      arrivaltime: arrivaltime,
     });
 
   if (error) {
@@ -1283,6 +1293,7 @@ export const editFlightBookingAction = async (formData: any) => {
   const departairport = formData.departAirport as string;
   const arriveairport = formData.arriveAirport as string;
   const departtime = formData.departTime as string;
+  const arrivaltime = formData.arrivalTime as string;
 
   const { data, error } = await supabase
     .from("flightbooking")
@@ -1293,6 +1304,7 @@ export const editFlightBookingAction = async (formData: any) => {
       departairport: departairport,
       arriveairport: arriveairport,
       departtime: departtime,
+      arrivaltime: arrivaltime,
     }).eq("flightbookingid", formData.id);
 
   if (error) {

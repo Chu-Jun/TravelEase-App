@@ -21,7 +21,9 @@ interface Location {
   interface AccommodationBooking {
     accommodationname: string;
     checkindate: string;
+    checkintime: string;
     checkoutdate: string;
+    checkouttime: string;
     location: Location;
     tripid: string;
   }
@@ -93,11 +95,11 @@ interface Location {
         <CardContent className="pt-4 grid grid-cols-2 gap-2">
           <div>
             <p className="text-sm text-gray-500">Check-in Date</p>
-            <p>{formatDate(booking.checkindate)}</p>
+            <p>{formatDate(booking.checkindate)} - {booking.checkintime}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Check-out Date</p>
-            <p>{formatDate(booking.checkoutdate)}</p>
+            <p>{formatDate(booking.checkoutdate)} - {booking.checkouttime}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Location</p>

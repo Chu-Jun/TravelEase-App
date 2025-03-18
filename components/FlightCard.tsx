@@ -21,6 +21,7 @@ interface FlightBooking {
     departairport: string;
     arriveairport: string;
     departtime: string;
+    arrivaltime: string;
     tripid: string;
   }
 
@@ -81,7 +82,7 @@ interface FlightBooking {
           </div>
           <div>
             <p className="text-sm text-gray-500">Arrival</p>
-            <p>{booking.arriveairport}</p>
+            <p>{booking.arriveairport} - {booking.arrivaltime}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Airline</p>

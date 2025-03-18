@@ -13,7 +13,7 @@ const styles = {
   }
 };
 
-const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking }) => {
+const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking, accommodationBooking }) => {
 
   const [calendar, setCalendar] = useState(null);
   const [events, setEvents] = useState([]);
@@ -39,26 +39,38 @@ const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking }) => 
     })) || [];
 
     // Convert flightBooking into event format
-    const flightEvents = flightBooking?.map(flight => ({
-      id: flight.flightbookingid,
-      text: `Flight: ${flight.flightcode} (${flight.airline})`,
-      start: `${flight.flightdate}T${flight.departtime}`,
-      end: `${flight.flightdate}T${flight.departtime}`,
-      backColor: "#e17100" // Yellow for flights
+    const flightEvents = flightBooking?.map(flight => {
+      // Default arrival time = depart time + 1 hour
+      const departTime = flight.departtime || "00:00:00";
+      const arrivalTime = flight.arrivaltime || addOneHour(departTime);
+  
+      return {
+        id: flight.flightbookingid,
+        text: `Flight: ${flight.flightcode} (${flight.airline})`,
+        start: `${flight.flightdate}T${departTime}`,
+        end: `${flight.flightdate}T${arrivalTime}`,
+        backColor: "#e17100" // Yellow for flights
+      };
+    }) || [];
+
+    const accommEvents = accommodationBooking?.map(accommodation => ({
+      id: accommodation.accommodationbookingid,
+      text: `Accommodation: ${accommodation.location?.locationname}`,
+      start: `${accommodation.checkindate}T${accommodation.checkintime ?? "15:00:00"}`, // Default check-in at 3 PM
+      end: `${accommodation.checkoutdate}T${accommodation.checkouttime ?? "12:00:00"}`, // Default check-out at 12 PM
+      backColor: "#cc4125" // Red for accommodations
     })) || [];
 
-    // const accommEvents = accommodationBooking?.map(accommodation => ({
-    //   id: accommodation.accommodationbookingid,
-    //   text: `Accommodation: ${accommodation.location?.locationname}`,
-    //   start: `${accommodation.checkindate}`,
-    //   end: `${accommodation.checkoutdate}`,
-    //   backColor: "#cc4125" // Red for flights
-    // })) || [];
-
     // Combine both event types
-    setEvents([...activityEvents, ...flightEvents]);
-    // setEvents([...activityEvents, ...flightEvents, ...accommEvents]);
-  }, [activityBooking, flightBooking]);
+    // setEvents([...activityEvents, ...flightEvents]);
+    setEvents([...activityEvents, ...flightEvents, ...accommEvents]);
+  }, [activityBooking, flightBooking, accommodationBooking]);
+
+  const addOneHour = (time) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const newHours = (hours + 1) % 24; // Ensure it stays within 24-hour format
+    return `${newHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:00`;
+  };
 
   return (
     <div style={styles.wrap} className='mt-4'>

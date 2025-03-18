@@ -23,6 +23,7 @@ const formSchema = z.object({
   departAirport: z.string().optional(),
   arriveAirport: z.string().optional(),
   departTime: z.string().optional(),
+  arrivalTime: z.string().optional(),
   activityLocationName: z.string().optional(),
   activityName: z.string().optional(),
   activityDate: z.string().optional(),
@@ -30,10 +31,12 @@ const formSchema = z.object({
   activityEndTime: z.string().optional(),
   accommodationName: z.string().optional(),
   checkInDate: z.string().optional(),
+  checkInTime: z.string().optional(),
   checkOutDate: z.string().optional(),
+  checkOutTime: z.string().optional(),
 });
 
-export default function BookingCreationDialog({ bookingData, bookingType, open, onOpenChange}: any) {
+export default function BookingEditDialog({ bookingData, bookingType, open, onOpenChange}: any) {
   const { toast } = useToast();
   const router = useRouter();
   const [isDialogOpen, setOpen] = useState(false);
@@ -43,19 +46,22 @@ export default function BookingCreationDialog({ bookingData, bookingType, open, 
     defaultValues: {
       tripid: bookingData?.tripid || "",
       flightDate: bookingData?.flightdate || "",
-    flightCode: bookingData?.flightcode || "",
-    airline: bookingData?.airline || "",
-    departAirport: bookingData?.departairport || "",
-    arriveAirport: bookingData?.arriveairport || "",
-    departTime: bookingData?.departtime || "",
-    activityLocationName: bookingData.location?.locationname || "",
-    activityName: bookingData?.activityname || "",
-    activityDate: bookingData?.activitydate || "",
-    activityStartTime: bookingData?.starttime || "",
-    activityEndTime: bookingData?.endtime || "",
-    accommodationName: bookingData?.accommodationname || "",
-    checkInDate: bookingData?.checkindate || "",
-    checkOutDate: bookingData?.checkoutdate || "",
+      flightCode: bookingData?.flightcode || "",
+      airline: bookingData?.airline || "",
+      departAirport: bookingData?.departairport || "",
+      arriveAirport: bookingData?.arriveairport || "",
+      departTime: bookingData?.departtime || "",
+      arrivalTime: bookingData?.arrivaltime || "",
+      activityLocationName: bookingData.location?.locationname || "",
+      activityName: bookingData?.activityname || "",
+      activityDate: bookingData?.activitydate || "",
+      activityStartTime: bookingData?.starttime || "",
+      activityEndTime: bookingData?.endtime || "",
+      accommodationName: bookingData?.accommodationname || "",
+      checkInDate: bookingData?.checkindate || "",
+      checkInTime: bookingData?.checkintime || "",
+      checkOutDate: bookingData?.checkoutdate || "",
+      checkOutTime: bookingData?.checkouttime || "",
     },
   });
 
@@ -102,7 +108,7 @@ export default function BookingCreationDialog({ bookingData, bookingType, open, 
       <DialogContent className="text-black w-4/5 rounded-lg">
         <DialogHeader>
           <DialogTitle>
-            <p className="text-primary font-extrabold">Edit Booking Record</p>
+            <p className="text-title font-extrabold">Edit Booking Record</p>
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -161,16 +167,22 @@ export default function BookingCreationDialog({ bookingData, bookingType, open, 
                     <FormControl><Input placeholder="Enter Depart Airport" {...field} /></FormControl>
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="departTime" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Depart Time</FormLabel>
+                    <FormControl><Input placeholder="Select Depart Time" type="time" {...field} /></FormControl>
+                  </FormItem>
+                )} />
                 <FormField control={form.control} name="arriveAirport" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Arrive Airport</FormLabel>
                     <FormControl><Input placeholder="Enter Arrive Airport" {...field} /></FormControl>
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="departTime" render={({ field }) => (
+                <FormField control={form.control} name="arrivalTime" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Depart Time</FormLabel>
-                    <FormControl><Input placeholder="Select Depart Time" type="time" {...field} /></FormControl>
+                    <FormLabel>Arrival Time</FormLabel>
+                    <FormControl><Input placeholder="Select Arrival Time" type="time" {...field} /></FormControl>
                   </FormItem>
                 )} />
               </>
@@ -227,10 +239,22 @@ export default function BookingCreationDialog({ bookingData, bookingType, open, 
                     <FormControl><Input placeholder="Select Check In Date" type="date" {...field} /></FormControl>
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="checkInTime" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Check-in Time</FormLabel>
+                    <FormControl><Input placeholder="Select Check In Time" type="time" {...field} /></FormControl>
+                  </FormItem>
+                )} />
                 <FormField control={form.control} name="checkOutDate" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Check-out Date</FormLabel>
                     <FormControl><Input placeholder="Select Check Out Date" type="date" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="checkOutTime" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Check-out Time</FormLabel>
+                    <FormControl><Input placeholder="Select Check Out Time" type="time" {...field} /></FormControl>
                   </FormItem>
                 )} />
               </>

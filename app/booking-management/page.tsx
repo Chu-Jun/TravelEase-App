@@ -46,7 +46,9 @@ interface ActivityBooking {
 interface AccommodationBooking {
   accommodationname: string;
   checkindate: string;
+  checkintime: string;
   checkoutdate: string;
+  checkouttime: string;
   location: Location;
   tripid: string;
 }
@@ -59,6 +61,7 @@ interface FlightBooking {
   departairport: string;
   arriveairport: string;
   departtime: string;
+  arrivaltime: string;
   tripid: string;
 }
 
@@ -331,7 +334,7 @@ const BookingManagementPage = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <BookingsCalendar tripStartDate={selectedTrip.tripstartdate} activityBooking={activityBookings} flightBooking={flightBookings}/>
+                <BookingsCalendar tripStartDate={selectedTrip.tripstartdate} activityBooking={activityBookings} flightBooking={flightBookings} accommodationBooking={accommodationBookings}/>
               )}
             </TabsContent>
           </Tabs>
