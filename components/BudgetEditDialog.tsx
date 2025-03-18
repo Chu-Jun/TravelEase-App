@@ -67,7 +67,7 @@ export default function BudgetEditDialog({tripData, open, onOpenChange}: any) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>
                 <Button
-                    className="bg-gray-400 text-white mt-2 md:w-1/3 md:self-center min-w-fit md:ml-2"
+                    className="bg-white text-secondary border-secondary border mt-2 md:w-1/3 md:self-center min-w-fit md:ml-2 hover:text-white hover:border-none"
                 >
                     Edit Budget
                 </Button>

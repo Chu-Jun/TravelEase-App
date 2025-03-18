@@ -65,7 +65,7 @@ export default function BookingDeletionDialog({bookingData, open, onOpenChange, 
                 <div className="text-yellow-500 text-7xl text-center mb-2">
                     <FontAwesomeIcon icon={faExclamationCircle}/>
                 </div>
-                <DialogTitle className="text-xl font-semibold text-center text-primary">
+                <DialogTitle className="text-xl font-semibold text-center text-title">
                     Delete Booking?
                 </DialogTitle>
                 <p className="text-sm text-center text-gray-500">
@@ -75,14 +75,14 @@ export default function BookingDeletionDialog({bookingData, open, onOpenChange, 
             <DialogFooter className="flex justify-center gap-4 mt-3">
                 <Button
                     onClick={handleDeleteTrip}
-                    className="bg-primary text-white hover:bg-red-700"
+                    className="bg-secondary text-white hover:bg-red-700"
                     disabled={isDeleting}
                 >
                     {isDeleting ? "Deleting..." : "Yes"}
                 </Button>
                 <Button
                     onClick={() => setIsDialogOpen(false)}
-                    className="bg-secondary text-white hover:bg-gray-400"
+                    className="bg-white text-secondary border border-secondary hover:bg-gray-400 hover:text-white hover:border-none"
                     disabled={isDeleting}
                 >
                     Cancel
