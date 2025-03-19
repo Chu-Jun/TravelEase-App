@@ -142,7 +142,7 @@ export default function Login() {
             </CardContent>
             <CardFooter className="flex justify-between text-sm font-semibold text-wrap">
                 <div className="flex h-4 items-center space-x-2 md:space-x-3">
-                    <Link href="/sign-up" className="w-1/2 text-left text-xs md:text-sm">Didn't have an account?</Link>
+                    <Link href="/sign-up" className="w-1/2 text-left text-xs md:text-sm">Didn&apos;t have an account?</Link>
                     <Separator orientation="vertical" />
                     <Link href="/forgot-password" className="w-1/2 text-right text-xs md:text-sm">Forgot Your Password?</Link>
                 </div>

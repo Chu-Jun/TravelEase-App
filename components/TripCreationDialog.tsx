@@ -8,7 +8,6 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useAuth } from "@/context/AuthContext";
 
@@ -32,7 +31,7 @@ export default function TripCreationDialog() {
     const router = useRouter();
 
     const [open, setOpen] = useState(false);
-    const { isAuth, role, updateAuthStatus } = useAuth();
+    const { isAuth } = useAuth();
 
     const form = useForm({
         resolver: zodResolver(formSchema),

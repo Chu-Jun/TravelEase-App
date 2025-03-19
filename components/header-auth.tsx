@@ -29,10 +29,9 @@ interface User {
 }
 
 export default function AuthButton() {
-  const { isAuth, role, updateAuthStatus } = useAuth();
+  const { isAuth } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [profileLink, setProfileLink] = useState("/profile");
-  const [loading, setLoading] = useState(true);
 
   // Navigation links array to reuse in both desktop and mobile views
   const navLinks: NavLink[] = [
@@ -62,10 +61,9 @@ export default function AuthButton() {
         }
         
         setUser(user as User | null);
+        console.log(user);
       } catch (error) {
         console.error("Error loading user data:", error);
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -73,7 +71,7 @@ export default function AuthButton() {
   }, []);
 
   // Client component for user menu dropdown
-function UserMenu({ user, profileLink }: { user: User | null; profileLink: string }) {
+function UserMenu({ profileLink }: { profileLink: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -107,11 +105,9 @@ function UserMenu({ user, profileLink }: { user: User | null; profileLink: strin
 // Client component for mobile navigation
 function MobileNavigation({ 
   navLinks, 
-  user, 
   profileLink 
 }: { 
   navLinks: NavLink[]; 
-  user: User | null; 
   profileLink: string 
 }) {
   return (
@@ -170,12 +166,12 @@ function MobileNavigation({
             {link.label}
           </Link>
         ))}
-        <UserMenu user={user} profileLink={profileLink} />
+        <UserMenu profileLink={profileLink} />
       </div>
 
       {/* Mobile Navigation - Now right-aligned */}
       <div className="md:hidden flex items-center gap-2">
-        <MobileNavigation navLinks={navLinks} user={user} profileLink={profileLink} />
+        <MobileNavigation navLinks={navLinks} profileLink={profileLink} />
       </div>
     </div>
   );

@@ -29,8 +29,6 @@ export default function ExpenseEditDialog({expenseData, open, onOpenChange}: any
     const { toast } = useToast();
     const router = useRouter();
 
-    const [isDialogOpen, setOpen] = useState(false);
-
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -64,7 +62,7 @@ export default function ExpenseEditDialog({expenseData, open, onOpenChange}: any
         const message = result.message;
 
         if (status === "success") {
-            setOpen(false); // Close dialog on successful submission
+            onOpenChange(false); // Close dialog on successful submission
             router.push("/expense-tracking");
             window.location.reload();
         } else {

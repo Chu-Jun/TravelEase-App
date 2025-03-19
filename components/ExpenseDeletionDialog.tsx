@@ -15,7 +15,6 @@ export default function ExpenseDeletionDialog({expenseData, open, onOpenChange}:
     const { toast } = useToast();
     const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false)
-    const [isDialogOpen, setIsDialogOpen] = useState(false)
 
     const handleDeleteTrip = async () => {
         try {
@@ -28,7 +27,7 @@ export default function ExpenseDeletionDialog({expenseData, open, onOpenChange}:
                     description: "Trip deleted successfully",
                 })
                 window.location.reload();
-                setIsDialogOpen(false);
+                onOpenChange(false);
                 router.refresh();
             } else {
                 throw new Error(result.message)
@@ -72,7 +71,7 @@ export default function ExpenseDeletionDialog({expenseData, open, onOpenChange}:
                     {isDeleting ? "Deleting..." : "Yes"}
                 </Button>
                 <Button
-                    onClick={() => setIsDialogOpen(false)}
+                    onClick={() => onOpenChange(false)}
                     className="bg-white text-secondary border border-secondary hover:bg-gray-400 hover:text-white hover:border-none"
                     disabled={isDeleting}
                 >

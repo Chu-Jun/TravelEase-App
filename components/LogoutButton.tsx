@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function LogoutButton() {
 
-  const { isAuth, role, updateAuthStatus } = useAuth();
+  const { updateAuthStatus } = useAuth();
   
   const handleSignOut = async () => {
     const supabase = createClient()

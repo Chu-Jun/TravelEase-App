@@ -27,8 +27,6 @@ export default function BudgetEditDialog({tripData, open, onOpenChange}: any) {
     const { toast } = useToast();
     const router = useRouter();
 
-    const [isDialogOpen, setOpen] = useState(false);
-
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -50,7 +48,7 @@ export default function BudgetEditDialog({tripData, open, onOpenChange}: any) {
 
         if (status === "success") {
             window.location.reload();
-            setOpen(false); // Close dialog on successful submission
+            onOpenChange(false); // Close dialog on successful submission
             router.refresh();
         } else {
             console.error("Error:", message);
