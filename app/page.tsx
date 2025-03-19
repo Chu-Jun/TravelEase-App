@@ -3,12 +3,7 @@
 import React, { useState } from "react";
 import Footer from "@/components/Footer";
 import Image from "next/image";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCalendar } from "@fortawesome/free-regular-svg-icons";
-import { faMapPin } from "@fortawesome/free-solid-svg-icons";
-import MustVisitCard from "@/components/MustVisitCard";
-import { mustVisitList } from "@/data/mustvisit_list";
+import BestPlaceCarousel from "@/components/BestPlaceCarousel";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -318,13 +313,7 @@ export default function Home() {
           A list of the top 75 Best Tourist Places to See in the world for a perfect trip.
         </p>
         
-        {/* Mobile-friendly grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 md:grid-cols-2 md:gap-x-4 lg:grid-cols-4 lg:gap-x-4 mb-12 w-full">
-          {mustVisitList.map((mustVisit, index) => (
-            <MustVisitCard key={index} imageSrc={mustVisit.imageSrc} locationName={mustVisit.locationName}
-            country={mustVisit.country}/>
-          ))}
-        </div>
+        <BestPlaceCarousel />
       </div>
       
       <Footer />
