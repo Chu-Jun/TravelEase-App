@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { getTrips, getExpenses } from "@/app/actions";
 import {
   DropdownMenu,
@@ -44,7 +43,6 @@ const ExpenseTrackingPage: React.FC = () => {
   const [totalExpense, setTotalExpense] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadMoreCount, setLoadMoreCount] = useState<number>(5);
-  const router = useRouter();
 
   useEffect(() => {
     // Fetch trip data on component mount

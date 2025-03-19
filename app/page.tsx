@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Footer from "@/components/Footer";
-import Image from "next/image";
 import BestPlaceCarousel from "@/components/BestPlaceCarousel";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,11 +60,6 @@ export default function Home() {
         title: status === "error" ? "Error" : "Success",
         description: message || "Something went wrong",
     });
-  }
-
-  function closeForm(){
-    setIsMobileFormExpanded(false);
-    return true;
   }
 
   return (

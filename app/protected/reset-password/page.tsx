@@ -1,9 +1,7 @@
 "use client"
 import { resetPasswordAction } from "@/app/actions";
 import { Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Box } from "@/components/ui/box"
@@ -26,9 +24,7 @@ const formSchema = z.object({
 })
 })
 
-export default function ResetPassword(props: {
-  searchParams: Promise<Message>;
-}) {
+export default function ResetPassword() {
 
   const [passwordVisibility, setPasswordVisibility] = useState(false);
 

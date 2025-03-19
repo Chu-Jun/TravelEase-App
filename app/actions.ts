@@ -117,9 +117,11 @@ export const signInAction = async (formData: FormValues) => {
   });
 
   if (error) {
+    console.log(error);
     return {
       status: "error",
       message: "Wrong Email/Password",
+      
     };
   }else{
     return {

@@ -3,13 +3,12 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import * as RadioGroup from '@radix-ui/react-radio-group';
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,7 +38,6 @@ const formSchema = z.object({
 export default function BookingEditDialog({ bookingData, bookingType, open, onOpenChange}: any) {
   const { toast } = useToast();
   const router = useRouter();
-  const [isDialogOpen, setOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -84,7 +82,7 @@ export default function BookingEditDialog({ bookingData, bookingType, open, onOp
     }
 
     if (result.status === "success") {
-      setOpen(false);
+      onOpenChange(false);
       router.push("/booking-management");
       window.location.reload();
     } else {
@@ -129,6 +127,7 @@ export default function BookingEditDialog({ bookingData, bookingType, open, onOp
                   <FormControl>
                     <Input type="hidden" {...field} />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -140,12 +139,14 @@ export default function BookingEditDialog({ bookingData, bookingType, open, onOp
                   <FormItem>
                     <FormLabel>Flight Date</FormLabel>
                     <FormControl><Input type="date" placeholder="Select Date" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="flightCode" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Flight Code</FormLabel>
                     <FormControl><Input placeholder="Enter Flight Code" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="airline" render={({ field }) => (
@@ -159,30 +160,35 @@ export default function BookingEditDialog({ bookingData, bookingType, open, onOp
                         <SelectItem value="Firefly">Firefly</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="departAirport" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Depart Airport</FormLabel>
                     <FormControl><Input placeholder="Enter Depart Airport" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="departTime" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Depart Time</FormLabel>
                     <FormControl><Input placeholder="Select Depart Time" type="time" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="arriveAirport" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Arrive Airport</FormLabel>
                     <FormControl><Input placeholder="Enter Arrive Airport" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="arrivalTime" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Arrival Time</FormLabel>
                     <FormControl><Input placeholder="Select Arrival Time" type="time" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
               </>
@@ -195,30 +201,35 @@ export default function BookingEditDialog({ bookingData, bookingType, open, onOp
                   <FormItem>
                     <FormLabel>Activity Name</FormLabel>
                     <FormControl><Input placeholder="Enter Activity Name" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="activityLocationName" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Location</FormLabel>
                     <FormControl><Input placeholder="Enter Location Name" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="activityDate" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Activity Date</FormLabel>
                     <FormControl><Input placeholder="Select Activity Date" type="date" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="activityStartTime" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Activity Start Time</FormLabel>
                     <FormControl><Input placeholder="Select Activity Start Time" type="time" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="activityEndTime" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Activity End Time</FormLabel>
                     <FormControl><Input placeholder="Select Activity End Time" type="time" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
               </>
@@ -231,30 +242,35 @@ export default function BookingEditDialog({ bookingData, bookingType, open, onOp
                   <FormItem>
                     <FormLabel>Hotel Name</FormLabel>
                     <FormControl><Input placeholder="Enter Hotel Name" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="checkInDate" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Check-in Date</FormLabel>
                     <FormControl><Input placeholder="Select Check In Date" type="date" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="checkInTime" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Check-in Time</FormLabel>
                     <FormControl><Input placeholder="Select Check In Time" type="time" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="checkOutDate" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Check-out Date</FormLabel>
                     <FormControl><Input placeholder="Select Check Out Date" type="date" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="checkOutTime" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Check-out Time</FormLabel>
                     <FormControl><Input placeholder="Select Check Out Time" type="time" {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
               </>

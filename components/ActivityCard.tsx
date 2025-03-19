@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "react-calendar/dist/Calendar.css";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
@@ -6,8 +6,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu";
   import BookingEditDialog from "@/components/BookingEditDialog";
@@ -36,6 +34,7 @@ const ActivityCard = ({ booking }: { booking: ActivityBooking }) => {
         try {
           return format(new Date(dateString), "dd MMM yyyy");
         } catch (e) {
+          console.log(e);
           return dateString;
         }
       };
