@@ -277,17 +277,62 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
           });
 
           // Add click listener to show info window
-          mapMarker.addListener("click", () => {
-            const content = `
-              <div style="padding: 8px; max-width: 200px;">
+          mapMarker.addListener("click", async () => {
+            // Show basic info immediately
+            let content = `
+              <div style="padding: 8px; max-width: 250px;">
                 <h3 style="font-weight: bold; font-size: 16px; margin-bottom: 4px;">${marker.name}</h3>
-                ${marker.formattedAddress ? `<p style="font-size: 14px; margin: 4px 0;">${marker.formattedAddress}</p>` : ''}
                 <p style="font-size: 12px; color: #666; margin-top: 4px;">Stop #${index + 1}</p>
+                <p style="font-size: 12px;">Loading details...</p>
               </div>
             `;
+            
             infoWindowRef.current.setContent(content);
             infoWindowRef.current.open(mapInstanceRef.current, mapMarker);
             setSelectedMarker(marker);
+            
+            // If we have a place_id, fetch additional details
+            if (marker.placeId) {
+              try {
+                const { Place } = await google.maps.importLibrary("places");
+                const request = {
+                  placeId: marker.placeId,
+                  fields: ['rating', 'user_ratings_total', 'opening_hours']
+                };
+                
+                const service = new google.maps.places.PlacesService(mapInstanceRef.current);
+                service.getDetails(request, (place, status) => {
+                  if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    // Update content with detailed information
+                    content = `
+                      <div style="padding: 8px; max-width: 250px;">
+                        <h3 style="font-weight: bold; font-size: 16px; margin-bottom: 4px;">${marker.name}</h3>
+                        
+                        ${place.rating ? `
+                          <div style="display: flex; align-items: center; margin: 8px 0;">
+                            <span style="font-weight: bold; margin-right: 4px;">${place.rating}</span>
+                            <span style="color: #facc15;">★</span>
+                            ${place.user_ratings_total ? `<span style="color: #666; font-size: 12px; margin-left: 4px;">(${place.user_ratings_total} reviews)</span>` : ''}
+                          </div>
+                        ` : ''}
+                        
+                        ${place.opening_hours ? `
+                          <div style="margin: 8px 0;">
+                            <p style="font-size: 14px; font-weight: bold; margin-bottom: 2px;">Hours:</p>
+                            <p style="font-size: 13px; margin: 0;">${place.opening_hours.weekday_text.join('<br>')}</p>
+                          </div>
+                        ` : ''}
+                        
+                        <p style="font-size: 12px; color: #666; margin-top: 8px;">Stop #${index + 1}</p>
+                      </div>
+                    `;
+                    infoWindowRef.current.setContent(content);
+                  }
+                });
+              } catch (error) {
+                console.error('Error fetching place details:', error);
+              }
+            }
           });
 
           newMarkers.push(mapMarker);
