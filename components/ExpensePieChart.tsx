@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useCallback } from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 
@@ -41,13 +42,7 @@ const colorsList = [
 const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses }) => {
   const [pieChartData, setPieChartData] = useState<any>(null);
 
-  useEffect(() => {
-    if (expenses && expenses.length > 0) {
-      generatePieChartData();
-    }
-  }, [expenses]);
-
-  const generatePieChartData = () => {
+  const generatePieChartData = useCallback(() => {
     // Group expenses by category and sum up the amounts
     const categoryGrouped = Object.values(
       expenses.reduce<Record<string, { category: string; totalAmount: number }>>((acc, { amountspent, category }) => {
@@ -78,7 +73,13 @@ const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses }) => {
     };
 
     setPieChartData(chartData);
-  };
+  }, [expenses]);
+
+  useEffect(() => {
+    if (expenses && expenses.length > 0) {
+      generatePieChartData();
+    }
+  }, [expenses, generatePieChartData]);
 
   // Chart options
   const options = {

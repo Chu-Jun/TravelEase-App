@@ -1,7 +1,7 @@
 'use client'
 
 import { signInAction } from "@/app/actions";
-
+import { useCallback } from "react";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -52,12 +52,16 @@ export default function Login() {
       },
   })
 
+  const navigateToHome = useCallback(() => {
+    router.push("/");
+  }, [router]);
+  
   useEffect(() => {
     console.log(isAuth);
     if (isAuth) {
-      router.push("/");
+      navigateToHome();
     }
-  }, [isAuth]);
+  }, [isAuth, navigateToHome]);
 
   async function onSubmit(values: FormValues) {
 
