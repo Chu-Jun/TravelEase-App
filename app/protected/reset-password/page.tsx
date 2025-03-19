@@ -1,6 +1,5 @@
 "use client"
 import { resetPasswordAction } from "@/app/actions";
-import { Message } from "@/components/form-message";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"

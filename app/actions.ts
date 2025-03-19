@@ -19,10 +19,6 @@ import { SupabaseClient } from "@supabase/supabase-js";
     password: string;
   }
 
-  interface Itinerary {
-    [key: string]: string[]; 
-  }
-
   interface TripData {
     tripstartdate: string;
   }
@@ -117,6 +113,7 @@ export const signInAction = async (formData: FormValues) => {
   });
 
   if (error) {
+    console.log(user);
     console.log(error);
     return {
       status: "error",
@@ -129,8 +126,6 @@ export const signInAction = async (formData: FormValues) => {
       message: "Sign In Successful",
     };
   }
-
-  return redirect("/profile");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
@@ -214,13 +209,6 @@ export const signOutAction = async () => {
   return redirect("/");
 };
 
-export const getUserDetail = async () => {
-  const supabase = await createClient();
-  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
-
-  return authUser;
-};
-
 export const userUpdateProfileAction = async (formData: any) => {
   const supabase = await createClient();
 
@@ -241,7 +229,7 @@ export const userUpdateProfileAction = async (formData: any) => {
     });
 
   if (error) {
-    console.error("Error updating profile:", error);
+    console.error("Error updating profile:", error, "Data is: ", data);
     return {
       status: "error",
       message: "Could not update profile",
@@ -281,9 +269,10 @@ export const createTripAction = async (formData: any) => {
     });
 
   if (error) {
+    console.log(data);
     return {
       status: "error",
-      message: error.message + "Could not create trip",
+      message: error?.message + "Could not create trip",
     };
   } else {
     return {
@@ -418,6 +407,7 @@ export const editTripAction = async (formData: any) => {
     }).eq("tripid", formData.id);
 
   if (error) {
+    console.log(data);
     return {
       status: "error",
       message: "Could not update trip",
@@ -446,6 +436,7 @@ export const editTripBudgetAction = async (formData: any) => {
     }).eq("tripid", formData.id);
 
   if (error) {
+    console.log(data);
     return {
       status: "error",
       message: "Could not update trip budget",
@@ -713,6 +704,10 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
       .select("itineraryid")
       .eq("tripid", tripId)
       .eq("date", formattedDate);
+
+    if(findError){
+      console.log("No itinerary data for this date");
+    }
     
     // Step 4: Delete existing entries and their associations
     if (existingEntries && existingEntries.length > 0) {
@@ -798,7 +793,7 @@ export async function saveItineraryDay(tripId: string, dayLabel: string, places:
           .select();
         
         if (createError) {
-          throw new Error('Unable to create new location: ' + createError.message);
+          throw new Error('Unable to create new location: ' + newLocation + " Error:" + createError.message);
         }
         
         locationId = newLocationId;
@@ -964,6 +959,7 @@ export const createExpenseAction = async (formData: any) => {
     });
 
   if (error) {
+    console.log(data);
     return {
       status: "error",
       message: error.message + "Could not create expense record",
@@ -1009,6 +1005,7 @@ export const editExpenseAction = async (formData: any) => {
     }).eq("expensesrecordid", formData.id);
 
   if (error) {
+    console.log(data);
     console.log(error.message);
     return {
       status: "error",
@@ -1088,7 +1085,7 @@ export const createAccommodationBookingAction = async (formData: any) => {
           .select();
         
         if (createError) {
-          throw new Error('Unable to create new location' + createError.message);
+          throw new Error('Unable to create new location for ' + newLocation + " Error: " + createError.message);
         }
         
         locationId = newLocationId;
@@ -1109,6 +1106,7 @@ export const createAccommodationBookingAction = async (formData: any) => {
     });
 
   if (error) {
+    console.log(data);
     return {
       status: "error",
       message: error.message + "Could not create booking record",
@@ -1172,7 +1170,7 @@ export const editAccommodationBookingAction = async (formData: any) => {
           .select();
         
         if (createError) {
-          throw new Error('Unable to create new location' + createError.message);
+          throw new Error('Unable to create new location for ' + newLocation + " Error: " + createError.message);
         }
         
         locationId = newLocationId;
@@ -1192,6 +1190,7 @@ export const editAccommodationBookingAction = async (formData: any) => {
     }).eq("accbookingid", formData.id);
 
   if (error) {
+    console.log(data);
     return {
       status: "error",
       message: error.message + "Could not update booking record",
@@ -1261,6 +1260,7 @@ export const createFlightBookingAction = async (formData: any) => {
     });
 
   if (error) {
+    console.log(data);
     return {
       status: "error",
       message: error.message + "Could not create booking record",
@@ -1310,6 +1310,7 @@ export const editFlightBookingAction = async (formData: any) => {
     }).eq("flightbookingid", formData.id);
 
   if (error) {
+    console.log(data);
     return {
       status: "error",
       message: error.message + "Could not update booking record",
@@ -1386,7 +1387,7 @@ if (locError || !existingLocation || existingLocation.length === 0) {
     .select();
   
   if (createError) {
-    throw new Error('Unable to create new location' + createError.message);
+    throw new Error('Unable to create new location for ' + newLocation + " Error: " + createError.message);
   }
   
   locationId = newLocationId;
@@ -1469,7 +1470,7 @@ if (locError || !existingLocation || existingLocation.length === 0) {
     .select();
   
   if (createError) {
-    throw new Error('Unable to create new location' + createError.message);
+    throw new Error('Unable to create new location for ' + newLocation + " Error: " + createError.message);
   }
   
   locationId = newLocationId;
@@ -1488,6 +1489,7 @@ if (locError || !existingLocation || existingLocation.length === 0) {
     }).eq("activitybookingid", formData.id);
 
   if (error) {
+    console.log(data);
     return {
       status: "error",
       message: error.message + "Could not update booking record",
