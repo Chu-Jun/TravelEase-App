@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useAuth } from "@/context/AuthContext";
 
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast"
@@ -31,7 +30,6 @@ export default function TripCreationDialog() {
     const router = useRouter();
 
     const [open, setOpen] = useState(false);
-    const { isAuth } = useAuth();
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -43,18 +41,6 @@ export default function TripCreationDialog() {
             touristNum: "1",
         },
     });
-
-    const handleClick = (event: { preventDefault: () => void; }) => {
-        console.log(isAuth);
-        if (!isAuth) {
-          event.preventDefault();
-          toast({
-            title: "Access Denied",
-            description: "You must be logged in to create trips.",
-            duration: 5000
-          });
-        }
-      };
 
     async function onSubmit(values: any) {
         const result = await createTripAction(values);
@@ -82,12 +68,10 @@ export default function TripCreationDialog() {
             <DialogTrigger asChild>
                 <Button
                     className="bg-secondary text-white mt-8 md:w-1/3 md:self-center min-w-fit"
-                    onClick={handleClick} 
                 >
                     Create New Trip
                 </Button>
             </DialogTrigger>
-            {isAuth && (
                 <DialogContent className="text-black w-4/5 rounded-lg">
                     <DialogHeader>
                         <DialogTitle>
@@ -198,7 +182,6 @@ export default function TripCreationDialog() {
                         </form>
                     </Form>
                 </DialogContent>
-            )}
         </Dialog>
     );
 }

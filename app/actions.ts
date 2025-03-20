@@ -63,44 +63,110 @@ import { SupabaseClient } from "@supabase/supabase-js";
     markers: Record<string, Marker[]>;
   }
 
-export const signUpAction = async (formData: SignUpFormValues, role: string) => {
-  const email = formData.email as string;
-  const password = formData.password as string;
-  const username = formData.username as string;
-  const supabase = await createClient();
-  const origin = (await headers()).get("origin");
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-      data: {
-        role: role,
-        username: username, // Ensure this is stored in raw_user_meta_data
-      },
-    },
-  });
-
-  if (error) {
-    return {
-      status: "error",
-      message: error.message,
-    };
+  async function createAnonymousUser() {
+    const supabase = await createClient();
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously();
+      
+      if (error) throw error;
+      
+      return data.user;
+    } catch (error) {
+      console.error('Error creating anonymous user:', error);
+      throw error;
+    }
   }
-
-  if (data.user && data.user.identities?.length === 0) {
-    return {
-      status: "error",
-      message: "User already exists",
-    };
-  }
-
-  return {
-    status: "success",
-    message: "Thanks for signing up! Please check your email for a verification link.",
+  
+  export const signUpAction = async (formData: SignUpFormValues, role: string) => {
+    const email = formData.email as string;
+    const password = formData.password as string;
+    const username = formData.username as string;
+    const supabase = await createClient();
+    const origin = (await headers()).get("origin");
+  
+    // First, check if there's an anonymous session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const currentUser = sessionData?.session?.user;
+    
+    // If there's a current user and they're anonymous
+    if (currentUser && !currentUser.email) {
+      // First update the user metadata for username and role
+      await supabase.auth.updateUser({
+        data: {
+          role: role,
+          username: username,
+        }
+      });
+      
+      // Store a record in the temporary_passwords table
+      // Use "pending" as the password status
+      try {
+        await supabase
+          .from('temporary_passwords')
+          .upsert({
+            user_id: currentUser.id,
+            password: "pending"  // Just indicating status, not storing actual password
+          });
+      } catch (dbError) {
+        console.error("Failed to store password status:", dbError);
+        return {
+          status: "error",
+          message: "Failed to prepare for password update",
+        };
+      }
+      
+      // Then update the email in a separate call
+      const { data: updateData, error: updateError } = await supabase.auth.updateUser({
+        email: email
+      });
+  
+      if (updateError) {
+        return {
+          status: "error",
+          message: updateError.message,
+        };
+      }else{
+        console.log(updateData);
+      }
+  
+      return {
+        status: "success",
+        message: "Please check your email for a verification link. After verifying, you'll need to set your password.",
+      };
+    } else {
+      // This is a new user, proceed with normal sign up
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${origin}/auth/callback`,
+          data: {
+            role: role,
+            username: username,
+          },
+        },
+      });
+  
+      if (error) {
+        return {
+          status: "error",
+          message: error.message,
+        };
+      }
+  
+      if (data.user && data.user.identities?.length === 0) {
+        return {
+          status: "error",
+          message: "User already exists",
+        };
+      }
+  
+      return {
+        status: "success",
+        message: "Thanks for signing up! Please check your email for a verification link.",
+      };
+    }
   };
-};
   
 export const signInAction = async (formData: FormValues) => {
   const email = formData.email as string;
@@ -245,12 +311,37 @@ export const userUpdateProfileAction = async (formData: any) => {
 export const createTripAction = async (formData: any) => {
 
   const supabase = await createClient();
+  let is_anonymous = true;
+  let anonUserId = null;
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const userId = user?.id;
+  if (!user) {
+    // Create anonymous user if none exists
+    await createAnonymousUser();
+    // The user should now be authenticated
+    
+    // Re-fetch user to ensure we have the latest user data
+    const { data: { user } } = await supabase.auth.getUser();
+    anonUserId = user?.id;
+  }else{
+    is_anonymous = false;
+  }
+
+  const { data: trip, error: tripError } = await supabase
+  .from('trip')
+  .select('*')
+
+  if(!user?.email && trip?.length != 0){
+    return {
+      status: "error",
+      message: "Sign up to manage more than one trip",
+    };
+  }
+
+  const userId = user?.id ? user?.id : anonUserId ;
   const tripName = formData.tripName as string;
   const tripStartDate = formData.tripStartDate as string;
   const tripEndDate = formData.tripEndDate as string;
@@ -266,6 +357,7 @@ export const createTripAction = async (formData: any) => {
       tripenddate: tripEndDate,
       tag: tag,
       touristnum: touristNum,
+      is_anonymous: is_anonymous,
     });
 
   if (error) {
