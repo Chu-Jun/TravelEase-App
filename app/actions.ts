@@ -63,6 +63,20 @@ import { SupabaseClient } from "@supabase/supabase-js";
     markers: Record<string, Marker[]>;
   }
 
+  async function createAnonymousUser() {
+    const supabase = await createClient();
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously();
+      
+      if (error) throw error;
+      
+      return data.user;
+    } catch (error) {
+      console.error('Error creating anonymous user:', error);
+      throw error;
+    }
+  }
+
 export const signUpAction = async (formData: SignUpFormValues, role: string) => {
   const email = formData.email as string;
   const password = formData.password as string;
@@ -245,12 +259,26 @@ export const userUpdateProfileAction = async (formData: any) => {
 export const createTripAction = async (formData: any) => {
 
   const supabase = await createClient();
+  let is_anonymous = true;
+  let anonUserId = null;
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const userId = user?.id;
+  if (!user) {
+    // Create anonymous user if none exists
+    await createAnonymousUser();
+    // The user should now be authenticated
+    
+    // Re-fetch user to ensure we have the latest user data
+    const { data: { user } } = await supabase.auth.getUser();
+    anonUserId = user?.id;
+  }else{
+    is_anonymous = false;
+  }
+
+  const userId = user?.id ? user?.id : anonUserId ;
   const tripName = formData.tripName as string;
   const tripStartDate = formData.tripStartDate as string;
   const tripEndDate = formData.tripEndDate as string;
@@ -266,6 +294,7 @@ export const createTripAction = async (formData: any) => {
       tripenddate: tripEndDate,
       tag: tag,
       touristnum: touristNum,
+      is_anonymous: is_anonymous,
     });
 
   if (error) {
