@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
+import { useCallback } from "react";
 const DEFAULT_CENTER = { lat: 5.2632, lng: 100.4846 }; // Penang as default
 const DEFAULT_ZOOM = 10;
 
@@ -34,8 +32,23 @@ const loadGoogleMapsLibraries = async () => {
   }
 };
 
+// Simple debounce implementation
+function debounce(func, wait) {
+  let timeout;
+  const debouncedFunction = function(...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+  debouncedFunction.cancel = function() {
+    clearTimeout(timeout);
+  };
+  return debouncedFunction;
+}
+
 const MapDisplay = ({ itineraryData, activeDay }) => {
   const router = useRouter();
+  const [apiKey, setApiKey] = useState('');
   const [googleMapsLibraries, setGoogleMapsLibraries] = useState(null);
   const [isInitializing, setIsInitializing] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -46,6 +59,7 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
   const polylineRef = useRef(null);
   const infoWindowRef = useRef(null);
   const scriptLoadedRef = useRef(false);
+  const currentMarkersDataRef = useRef([]);
   
   // Get markers for the active day
   const markers = itineraryData?.markers?.[activeDay] || [];
@@ -74,21 +88,38 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
     }
   };
 
-  // Load Google Maps script
+  // Fetch API key from server
   useEffect(() => {
-    // Prevent duplicate script loading
-    if (scriptLoadedRef.current) return;
+    const fetchApiKey = async () => {
+      try {
+        const response = await fetch('/api/maps-key');
+        const data = await response.json();
+        setApiKey(data.apiKey);
+      } catch (error) {
+        console.error("Error fetching API key:", error);
+      }
+    };
+    
+    fetchApiKey();
+  }, []);
+
+  // Load Google Maps script after API key is available
+  useEffect(() => {
+    if (!apiKey || scriptLoadedRef.current) return;
+    
+    console.log("Loading Google Maps script with API key");
     
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,geometry&v=beta&callback=initMap`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&v=beta&callback=initMap`;
     script.async = true;
     script.defer = true;
     
-    // Define the callback function that will be called when the script loads
     window.initMap = async () => {
+      console.log("initMap callback triggered");
       try {
         const libraries = await loadGoogleMapsLibraries();
         if (libraries) {
+          console.log("Google Maps libraries loaded successfully");
           setGoogleMapsLibraries(libraries);
           scriptLoadedRef.current = true;
         }
@@ -97,25 +128,39 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
       }
     };
     
-    // If Google Maps is already loaded, call initMap directly
-    if (window.google && window.google.maps) {
-      window.initMap();
-    } else {
-      // Otherwise, load the script
-      document.head.appendChild(script);
-    }
+    document.head.appendChild(script);
     
     return () => {
-      // Clean up script and callback on unmount
       if (window.initMap) {
         window.initMap = null;
       }
-      // Only remove the script if we added it
-      if (!scriptLoadedRef.current && document.head.contains(script)) {
+      if (document.head.contains(script)) {
         document.head.removeChild(script);
       }
     };
-  }, []);
+  }, [apiKey]);
+
+  // Initial map initialization - only runs once when libraries are loaded
+  useEffect(() => {
+    if (googleMapsLibraries && apiKey && !mapInstanceRef.current) {
+      initializeMap();
+    }
+  }, [googleMapsLibraries, apiKey]);
+
+  // Handle updating the map when activeDay or markers change
+  useEffect(() => {
+    if (mapInstanceRef.current && googleMapsLibraries) {
+      // Store string representation of markers data to compare for changes
+      const newMarkersData = JSON.stringify(markers.map(m => m.coordinate));
+      const prevMarkersData = JSON.stringify(currentMarkersDataRef.current);
+      
+      // Only update if markers have actually changed
+      if (newMarkersData !== prevMarkersData) {
+        currentMarkersDataRef.current = markers.map(m => m.coordinate);
+        updateMapWithNewMarkers();
+      }
+    }
+  }, [activeDay, markers]);
 
   // Clean up map resources
   const cleanupMap = () => {
@@ -141,7 +186,7 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
 
   // Fetch route from Routes API
   const fetchRoute = async (markers) => {
-    if (markers.length < 2) return null;
+    if (markers.length < 2 || !apiKey) return null;
 
     // Create origin, destination and waypoints
     const origin = markers[0].coordinate;
@@ -196,7 +241,7 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Goog-Api-Key': API_KEY,
+            'X-Goog-Api-Key': apiKey,
             'X-Goog-FieldMask': 'routes.polyline,routes.legs,routes.duration,routes.distanceMeters'
           },
           body: JSON.stringify(requestBody)
@@ -214,10 +259,10 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
     }
   };
 
-  // Initialize or update map
+  // Initialize map once
   const initializeMap = async () => {
     // Prevent concurrent initializations
-    if (isInitializing) return;
+    if (isInitializing || !apiKey) return;
     setIsInitializing(true);
     
     try {
@@ -235,15 +280,8 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
       // Get current map configuration
       const mapConfig = getMapConfig();
       
-      // Clean up existing map elements
-      cleanupMap();
-      
       // Create new map instance
-      if (mapInstanceRef.current) {
-        // If map already exists, just update it
-        mapInstanceRef.current.setCenter(mapConfig.center);
-        mapInstanceRef.current.setZoom(mapConfig.zoom);
-      } else {
+      if (!mapInstanceRef.current) {
         // Create new map
         const { Map } = googleMapsLibraries.maps;
         const newMap = new Map(mapElement, {
@@ -253,12 +291,34 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
         });
         
         mapInstanceRef.current = newMap;
-      }
-      
-      // Create info window if needed
-      if (!infoWindowRef.current) {
+        
+        // Create info window only once
         infoWindowRef.current = new google.maps.InfoWindow();
       }
+      
+      // Add initial markers and routes
+      updateMapWithNewMarkers();
+      
+      setMapLoaded(true);
+    } catch (error) {
+      console.error('Error in map initialization:', error);
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+  
+  // Update map with new markers and routes without recreating the map
+  const updateMapWithNewMarkers = async () => {
+    if (!mapInstanceRef.current) return;
+    
+    try {
+      // Update center and zoom
+      const mapConfig = getMapConfig();
+      mapInstanceRef.current.setCenter(mapConfig.center);
+      mapInstanceRef.current.setZoom(mapConfig.zoom);
+      
+      // Clean up existing markers and polyline
+      cleanupMap();
       
       // Add markers
       const newMarkers = [];
@@ -354,11 +414,6 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
             // Create polyline from encoded path
             if (route.polyline && route.polyline.encodedPolyline) {
               try {
-                // Clear existing polyline
-                if (polylineRef.current) {
-                  polylineRef.current.setMap(null);
-                }
-                
                 const path = google.maps.geometry.encoding.decodePath(route.polyline.encodedPolyline);
                 const polyline = new google.maps.Polyline({
                   path: path,
@@ -385,12 +440,8 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
           createFallbackPolyline();
         }
       }
-      
-      setMapLoaded(true);
     } catch (error) {
-      console.error('Error in map initialization:', error);
-    } finally {
-      setIsInitializing(false);
+      console.error('Error updating map:', error);
     }
   };
   
@@ -399,11 +450,6 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
     try {
       // Create simple polyline connecting the markers
       const path = markers.map(marker => marker.coordinate);
-      
-      // Clear existing polyline
-      if (polylineRef.current) {
-        polylineRef.current.setMap(null);
-      }
       
       const polyline = new google.maps.Polyline({
         path: path,
@@ -420,29 +466,11 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
     }
   };
 
-  // Initialize map when Google Maps libraries are loaded
-  useEffect(() => {
-    if (googleMapsLibraries) {
-      initializeMap();
-    }
-  }, [googleMapsLibraries]);
-
-  // Update map when markers change
-  useEffect(() => {
-    if (googleMapsLibraries && mapInstanceRef.current) {
-      initializeMap();
-    }
-  }, [activeDay, markers]);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       cleanupMap();
-      if (mapInstanceRef.current) {
-        // No direct way to destroy a map, but we can at least
-        // remove references and clear the DOM
-        mapInstanceRef.current = null;
-      }
+      mapInstanceRef.current = null;
     };
   }, []);
 

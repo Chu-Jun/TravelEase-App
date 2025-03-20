@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import "react-calendar/dist/Calendar.css";
-import { ChevronDown, ChevronUp, Menu, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Menu, X } from "lucide-react";
 import PlannedTripCard from "@/components/PlannedTripCard";
 import TripCreationDialog from "@/components/TripCreationDialog";
 import { getTrips, getActivityBookings, getAccommodationBookings, getFlightBookings } from "@/app/actions";
@@ -14,8 +13,7 @@ import AccommodationCard from "@/components/AccommodationCard";
 import FlightCard from "@/components/FlightCard";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Trip {
   tripid: string;
@@ -77,7 +75,6 @@ const BookingManagementPage = () => {
   const [flightBookings, setFlightBookings] = useState<FlightBooking[]>([]);
   
   const [activeTab, setActiveTab] = useState<string>("all");
-  const router = useRouter();
 
   useEffect(() => {
     // Fetch trip data on component mount
@@ -143,21 +140,6 @@ const BookingManagementPage = () => {
     const timeDiff = end.getTime() - start.getTime();
     const days = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1; // Need to also add in the start date
     return `${days} Days`;
-  };
-
-  // Get all bookings for the calendar view
-  const allBookings = {
-    activities: activityBookings,
-    accommodations: accommodationBookings,
-    flights: flightBookings
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), "dd MMM yyyy");
-    } catch (e) {
-      return dateString;
-    }
   };
 
   const toggleSidebar = () => {
