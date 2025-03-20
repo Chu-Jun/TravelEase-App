@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import Link from "next/link";
 import { EyeIcon, EyeOffIcon } from "lucide-react"
 
 const formSchema = z.object({
@@ -23,7 +22,7 @@ const formSchema = z.object({
 })
 })
 
-export default function ResetPassword() {
+export default function SetPassword() {
 
   const [passwordVisibility, setPasswordVisibility] = useState(false);
 
@@ -67,8 +66,8 @@ export default function ResetPassword() {
     <div className="min-h-screen px-8 mb-8 lg:px-16 lg:py-8 text-primary">
     <Card className="m-auto bg-white w-full md:w-3/4 lg:w-1/3">
         <CardHeader>
-            <CardTitle>Reset Password</CardTitle>
-            <CardDescription>Reset your account password.</CardDescription>
+            <CardTitle>Set Password</CardTitle>
+            <CardDescription>Set your account password to complete the sign-up process.</CardDescription>
         </CardHeader>
         <CardContent>
             <Form {...form}>
@@ -137,11 +136,8 @@ export default function ResetPassword() {
                             )}
                         </Button>
                     </form>
-    </Form>
+              </Form>
             </CardContent>
-            <CardFooter className="flex justify-between text-sm font-semibold text-wrap">
-                <Link href="/sign-in" className="w-1/2">Sign In?</Link>
-            </CardFooter>
         </Card>
     </div>
   );
