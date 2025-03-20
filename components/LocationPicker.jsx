@@ -6,8 +6,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLocationDot, faArrowUp, faArrowDown, faSearch } from "@fortawesome/free-solid-svg-icons";
 import TransportModeIndicator from "@/components/TransportModeIndicator";
 
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
 const LocationPicker = ({ 
   places = [], 
   onPlacesChange,
@@ -22,12 +20,27 @@ const LocationPicker = ({
   const [selectedPlaces, setSelectedPlaces] = useState(places.length > 0 ? [...places] : [""]);
   const [PlacePicker, setPlacePicker] = useState(null);
   const [showTransportIndicator, setShowTransportIndicator] = useState(true); // New state
+  const [apiKey, setApiKey] = useState('');
+
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const response = await fetch('/api/maps-key');
+        const data = await response.json();
+        setApiKey(data.apiKey);
+      } catch (error) {
+        console.error("Error fetching API key:", error);
+      }
+    };
+    
+    fetchApiKey();
+  }, []);
 
   useEffect(() => {
     import("@googlemaps/extended-component-library/react").then((module) => {
       setPlacePicker(() => module.PlacePicker);
     });
-  }, []);
+  }, [apiKey]);
 
   useEffect(() => {
     setShowTransportIndicator(true); // Enable indicator again when transport modes update
@@ -75,7 +88,8 @@ const LocationPicker = ({
   };
 
   return (
-    <APIProvider apiKey={API_KEY} version="beta" solutionChannel="GMP_itinerary_planner">
+    apiKey ? (
+      <APIProvider apiKey={apiKey} version="beta" solutionChannel="GMP_itinerary_planner">
       <div className="space-y-2">
         {(places.length > 0 ? places : [""]).map((place, index) => {
           if (!pickerRefs.current[index]) {
@@ -142,7 +156,10 @@ const LocationPicker = ({
           + Add another place
         </button>
       </div>
-    </APIProvider>
+      </APIProvider>
+  ) : (
+    <p>Loading API key...</p> // Show loading while fetching the key
+  )
   );
 };
 
