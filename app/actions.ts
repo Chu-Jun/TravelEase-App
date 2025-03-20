@@ -278,6 +278,17 @@ export const createTripAction = async (formData: any) => {
     is_anonymous = false;
   }
 
+  const { data: trip, error: tripError } = await supabase
+  .from('trip')
+  .select('*')
+
+  if(!user?.email && trip?.length != 0){
+    return {
+      status: "error",
+      message: "Sign up to manage more than one trip",
+    };
+  }
+
   const userId = user?.id ? user?.id : anonUserId ;
   const tripName = formData.tripName as string;
   const tripStartDate = formData.tripStartDate as string;
