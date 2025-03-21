@@ -128,6 +128,19 @@ import { SupabaseClient } from "@supabase/supabase-js";
       }else{
         console.log(updateData);
       }
+
+      await supabase
+      .from("users")
+      .update({
+        username: username,
+        email: email,
+      }).eq("id", currentUser.id);
+
+      await supabase
+      .from("profiles")
+      .update({
+        role: "user"
+      }).eq("id", currentUser.id);
   
       return {
         status: "success",
