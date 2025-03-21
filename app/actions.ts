@@ -128,6 +128,19 @@ import { SupabaseClient } from "@supabase/supabase-js";
       }else{
         console.log(updateData);
       }
+
+      await supabase
+      .from("users")
+      .update({
+        username: username,
+        email: email,
+      }).eq("id", currentUser.id);
+
+      await supabase
+      .from("profiles")
+      .update({
+        role: "user"
+      }).eq("id", currentUser.id);
   
       return {
         status: "success",
@@ -261,6 +274,15 @@ export const resetPasswordAction = async (formData: any) => {
       message: "Password update failed",
     };
   }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data, error: deletePendingError } = await supabase
+    .from("temporary_passwords")
+    .delete()
+    .eq("user_id", user?.id);
 
   return {
     status: "success",
