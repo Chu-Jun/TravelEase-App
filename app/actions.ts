@@ -262,6 +262,15 @@ export const resetPasswordAction = async (formData: any) => {
     };
   }
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data, error: deletePendingError } = await supabase
+    .from("temporary_passwords")
+    .delete()
+    .eq("user_id", user?.id);
+
   return {
     status: "success",
     redirect: "/sign-in",
