@@ -1176,6 +1176,13 @@ export const createAccommodationBookingAction = async (formData: any) => {
   const checkintime = formData.checkInTime ? formData.checkInTime : "15:00:00";
   const checkoutdate = formData.checkOutDate as string;
   const checkouttime = formData.checkOutTime ? formData.checkOutTime : "12:00:00";
+
+  if(accommodationname == null || accommodationname == "" || checkindate == null || checkoutdate == null){
+    return {
+      status: "error",
+      message: "Please fill in the compulsory field mark with *",
+    };
+  }
       
       // Check if location exists
       const { data: existingLocation, error: locError } = await supabase
@@ -1261,6 +1268,13 @@ export const editAccommodationBookingAction = async (formData: any) => {
   const checkintime = formData.checkInTime as string;
   const checkoutdate = formData.checkOutDate as string;
   const checkouttime = formData.checkOutTime as string;
+
+  if(accommodationname == null || accommodationname == "" || checkindate == null || checkoutdate == null){
+    return {
+      status: "error",
+      message: "Please fill in the compulsory field mark with *",
+    };
+  }
       
       // Check if location exists
       const { data: existingLocation, error: locError } = await supabase
@@ -1360,6 +1374,13 @@ export const createFlightBookingAction = async (formData: any) => {
   const departtime = formData.departTime as string;
   const arrivaltime = formData.arrivalTime as string;
 
+  if(flightdate == null || flightcode == "" || flightcode == null || airline == null || airline == "" || departairport == null || departairport == "" || arriveairport == null || arriveairport == "" || departtime == null ){
+    return {
+      status: "error",
+      message: "Please fill in the compulsory field mark with *",
+    };
+  }
+
   const { data, error } = await supabase
     .from("flightbooking")
     .insert({
@@ -1410,6 +1431,13 @@ export const editFlightBookingAction = async (formData: any) => {
   const arriveairport = formData.arriveAirport as string;
   const departtime = formData.departTime as string;
   const arrivaltime = formData.arrivalTime as string;
+
+  if(flightdate == null || flightcode == "" || flightcode == null || airline == null || airline == "" || departairport == null || departairport == "" || arriveairport == null || arriveairport == "" || departtime == null ){
+    return {
+      status: "error",
+      message: "Please fill in the compulsory field mark with *",
+    };
+  }
 
   const { data, error } = await supabase
     .from("flightbooking")
@@ -1478,6 +1506,13 @@ export const createActivityBookingAction = async (formData: any) => {
   const starttime = formData.activityStartTime as string;
   const endtime = formData.activityEndTime as string;
   const activitylocationname = formData.activityLocationName as string;
+
+  if(activityname == null || activityname == "" || activitydate == null || starttime == null || endtime == null || activitylocationname == null || activitylocationname == ""){
+    return {
+      status: "error",
+      message: "Please fill in the compulsory field mark with *",
+    };
+  }
 
   // Check if location exists
   const { data: existingLocation, error: locError } = await supabase
@@ -1561,6 +1596,13 @@ export const editActivityBookingAction = async (formData: any) => {
   const starttime = formData.activityStartTime as string;
   const endtime = formData.activityEndTime as string;
   const activitylocationname = formData.activityLocationName as string;
+
+  if(activityname == null || activityname == "" || activitydate == null || starttime == null || endtime == null || activitylocationname == null || activitylocationname == ""){
+    return {
+      status: "error",
+      message: "Please fill in the compulsory field mark with *",
+    };
+  }
 
   // Check if location exists
   const { data: existingLocation, error: locError } = await supabase
