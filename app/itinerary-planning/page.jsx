@@ -131,7 +131,7 @@ const ItineraryPlanningPage = () => {
   }
 
   // Get days from itinerary data for preview
-  const itineraryDays = Object.keys(itineraryData.places || {}).sort();
+  const itineraryDays = Object.keys(itineraryData.places || {});
 
   return (
     <div className="mt-16">

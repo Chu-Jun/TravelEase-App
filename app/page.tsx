@@ -19,12 +19,15 @@ import { createTripAction } from "@/app/actions";
 
 const formSchema = z.object({
   tripName: z.string().min(2, {
-      message: "Trip name must be at least 2 characters."
+    message: "Trip name must be at least 2 characters."
   }),
   tripStartDate: z.string(),
   tripEndDate: z.string(),
   tag: z.string(),
   touristNum: z.string()
+}).refine(data => new Date(data.tripEndDate) > new Date(data.tripStartDate), {
+  message: "Trip end date must be later than start date.",
+  path: ["tripEndDate"], // ensures the error is attached to tripEndDate
 });
 
 export default function Home() {
@@ -38,8 +41,8 @@ export default function Home() {
           tripName: "",
           tripStartDate: "",
           tripEndDate: "",
-          tag: "",
-          touristNum: "",
+          tag: "N/A",
+          touristNum: "1",
       },
   });
 
@@ -156,6 +159,7 @@ export default function Home() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent className="bg-white text-black">
+                                  <SelectItem value="N/A">Select Tag</SelectItem>
                                   <SelectItem value="Local">Local</SelectItem>
                                   <SelectItem value="Abroad">Abroad</SelectItem>
                                 </SelectContent>
@@ -201,18 +205,19 @@ export default function Home() {
           
           {/* Desktop/Tablet View: Horizontal Form */}
           <div className="hidden md:block bg-blue-50/70 rounded-xl p-4 m-8 mt-36 sticky">
-            <div className="flex gap-0 items-center w-full">
+            <div className="flex items-center w-full">
               <Form {...form}>
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     form.handleSubmit(onSubmit)(e);
-                }}>
-                  <div className="flex flex-wrap md:flex-nowrap gap-0 items-center w-full">
+                }} className="w-full">
+                  <div className="grid grid-cols-12 gap-2 items-end w-full">
                     <FormField
                       control={form.control}
                       name="tripName"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[40%] p-2 rounded-l">
+                        <FormItem className="col-span-3">
+                          <FormLabel className="text-title font-medium">Destination</FormLabel>
                           <FormControl>
                             <Input className="bg-white" placeholder="Plan a new trip to:" {...field} />
                           </FormControl>
@@ -224,7 +229,8 @@ export default function Home() {
                       control={form.control}
                       name="tripStartDate"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[20%] p-2">
+                        <FormItem className="col-span-2">
+                          <FormLabel className="text-title font-medium">Start Date</FormLabel>
                           <FormControl>
                             <Input className="bg-white" type="date" placeholder="Start Date" {...field} />
                           </FormControl>
@@ -236,7 +242,8 @@ export default function Home() {
                       control={form.control}
                       name="tripEndDate"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[20%] p-2">
+                        <FormItem className="col-span-2">
+                          <FormLabel className="text-title font-medium">End Date</FormLabel>
                           <FormControl>
                             <Input className="bg-white" type="date" placeholder="End Date" {...field} />
                           </FormControl>
@@ -248,14 +255,16 @@ export default function Home() {
                       control={form.control}
                       name="tag"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[15%] p-2">
+                        <FormItem className="col-span-2">
                           <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
+                          <FormLabel className="text-title font-medium">Tag</FormLabel>
                             <FormControl>
                               <SelectTrigger className="bg-white">
                                 <SelectValue placeholder="Tag" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="bg-white text-title">
+                              <SelectItem value="N/A">Select Tag</SelectItem>
                               <SelectItem value="Local">Local</SelectItem>
                               <SelectItem value="Abroad">Abroad</SelectItem>
                             </SelectContent>
@@ -268,8 +277,9 @@ export default function Home() {
                       control={form.control}
                       name="touristNum"
                       render={({ field }) => (
-                        <FormItem className="w-full md:w-[15%] p-2 rounded-r">
+                        <FormItem className="col-span-2">
                           <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
+                          <FormLabel className="text-title font-medium">Number of Tourist</FormLabel>
                             <FormControl>
                               <SelectTrigger className="bg-white">
                                 <SelectValue placeholder="Num of Travelers" />
@@ -285,7 +295,11 @@ export default function Home() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="bg-primary text-white mt-0 ml-4" disabled={form.formState.isSubmitting}>
+                    <Button 
+                      type="submit" 
+                      className="col-span-1 bg-primary text-white h-10 self-end" 
+                      disabled={form.formState.isSubmitting}
+                    >
                       {form.formState.isSubmitting ? "Creating Trip..." : "Start Planning"}
                     </Button>
                   </div>

@@ -15,6 +15,15 @@ import { useToast } from "@/hooks/use-toast";
 
 import { createAccommodationBookingAction, createFlightBookingAction, createActivityBookingAction } from "@/app/actions";
 
+const compareTimeStrings = (startTime: string, endTime: string): boolean => {
+  const parseTime = (timeStr: string) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  return parseTime(endTime) > parseTime(startTime);
+};
+
 const formSchema = z.object({
   tripid: z.string(),
   flightDate: z.string().optional(),
@@ -34,6 +43,42 @@ const formSchema = z.object({
   checkInTime: z.string().optional(),
   checkOutDate: z.string().optional(),
   checkOutTime: z.string().optional(),
+}).superRefine((data, ctx) => {
+  // Validate arrival time is later than departure time
+  if (data.departTime && data.arrivalTime) {
+    if (!compareTimeStrings(data.departTime, data.arrivalTime)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['arrivalTime'],
+        message: 'Arrival time must be later than departure time'
+      });
+    }
+  }
+
+  // Validate activity end time is later than start time
+  if (data.activityStartTime && data.activityEndTime) {
+    if (!compareTimeStrings(data.activityStartTime, data.activityEndTime)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['activityEndTime'],
+        message: 'Activity end time must be later than start time'
+      });
+    }
+  }
+
+  // Validate check-out date is later than check-in date
+  if (data.checkInDate && data.checkOutDate) {
+    const checkInDate = new Date(data.checkInDate);
+    const checkOutDate = new Date(data.checkOutDate);
+    
+    if (checkOutDate <= checkInDate) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['checkOutDate'],
+        message: 'Check-out date must be later than check-in date'
+      });
+    }
+  }
 });
 
 export default function BookingCreationDialog({ tripData }: any) {
@@ -146,21 +191,21 @@ export default function BookingCreationDialog({ tripData }: any) {
               <>
                 <FormField control={form.control} name="flightDate" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Flight Date</FormLabel>
+                    <FormLabel>Flight Date *</FormLabel>
                     <FormControl><Input type="date" placeholder="Select Date" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="flightCode" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Flight Code</FormLabel>
+                    <FormLabel>Flight Code *</FormLabel>
                     <FormControl><Input placeholder="Enter Flight Code" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="airline" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Airline</FormLabel>
+                    <FormLabel>Airline *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Select Airline" /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -174,7 +219,7 @@ export default function BookingCreationDialog({ tripData }: any) {
                 )} />
                 <FormField control={form.control} name="departAirport" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Depart Airport</FormLabel>
+                    <FormLabel>Depart Airport *</FormLabel>
                     <FormControl><Input placeholder="Enter Depart Airport" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -182,14 +227,14 @@ export default function BookingCreationDialog({ tripData }: any) {
                 
                 <FormField control={form.control} name="departTime" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Depart Time</FormLabel>
+                    <FormLabel>Depart Time *</FormLabel>
                     <FormControl><Input placeholder="Select Depart Time" type="time" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="arriveAirport" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Arrive Airport</FormLabel>
+                    <FormLabel>Arrive Airport *</FormLabel>
                     <FormControl><Input placeholder="Enter Arrive Airport" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -209,35 +254,35 @@ export default function BookingCreationDialog({ tripData }: any) {
               <>
                 <FormField control={form.control} name="activityName" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Activity Name</FormLabel>
+                    <FormLabel>Activity Name *</FormLabel>
                     <FormControl><Input placeholder="Enter Activity Name" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="activityLocationName" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>Location *</FormLabel>
                     <FormControl><Input placeholder="Enter Location Name" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="activityDate" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Activity Date</FormLabel>
+                    <FormLabel>Activity Date *</FormLabel>
                     <FormControl><Input placeholder="Select Activity Date" type="date" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="activityStartTime" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Activity Start Time</FormLabel>
+                    <FormLabel>Activity Start Time *</FormLabel>
                     <FormControl><Input placeholder="Select Activity Start Time" type="time" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="activityEndTime" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Activity End Time</FormLabel>
+                    <FormLabel>Activity End Time *</FormLabel>
                     <FormControl><Input placeholder="Select Activity End Time" type="time" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -250,14 +295,14 @@ export default function BookingCreationDialog({ tripData }: any) {
               <>
                 <FormField control={form.control} name="accommodationName" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hotel Name</FormLabel>
+                    <FormLabel>Hotel Name *</FormLabel>
                     <FormControl><Input placeholder="Enter Hotel Name" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="checkInDate" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Check-in Date</FormLabel>
+                    <FormLabel>Check-in Date *</FormLabel>
                     <FormControl><Input placeholder="Select Check In Date" type="date" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -271,7 +316,7 @@ export default function BookingCreationDialog({ tripData }: any) {
                 )} />
                 <FormField control={form.control} name="checkOutDate" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Check-out Date</FormLabel>
+                    <FormLabel>Check-out Date *</FormLabel>
                     <FormControl><Input placeholder="Select Check Out Date" type="date" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>

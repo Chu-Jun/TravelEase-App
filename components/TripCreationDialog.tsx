@@ -17,13 +17,16 @@ import { createTripAction } from "@/app/actions"
 
 const formSchema = z.object({
     tripName: z.string().min(2, {
-        message: "Trip name must be at least 2 characters."
+      message: "Trip name must be at least 2 characters."
     }),
     tripStartDate: z.string(),
     tripEndDate: z.string(),
     tag: z.string(),
     touristNum: z.string()
-})
+  }).refine(data => new Date(data.tripEndDate) > new Date(data.tripStartDate), {
+    message: "Trip end date must be later than start date.",
+    path: ["tripEndDate"], // ensures the error is attached to tripEndDate
+  });
 
 export default function TripCreationDialog() {
     const { toast } = useToast();
@@ -37,7 +40,7 @@ export default function TripCreationDialog() {
             tripName: "",
             tripStartDate: "",
             tripEndDate: "",
-            tag: "",
+            tag: "N/A",
             touristNum: "1",
         },
     });
@@ -136,6 +139,7 @@ export default function TripCreationDialog() {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-white text-title">
+                                                <SelectItem value="N/A">Select Tag</SelectItem>
                                                 <SelectItem value="Local">Local</SelectItem>
                                                 <SelectItem value="Abroad">Abroad</SelectItem>
                                             </SelectContent>

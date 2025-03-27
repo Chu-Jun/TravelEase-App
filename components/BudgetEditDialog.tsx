@@ -20,8 +20,10 @@ const formSchema = z.object({
     }),
     tripStartDate: z.string(),
     tripEndDate: z.string(),
-    budget: z.string(),
-})
+    budget: z.coerce.number().min(1, {
+        message: "Budget must be greater than 0."
+    }), 
+});
 
 export default function BudgetEditDialog({tripData, open, onOpenChange}: any) {
     const { toast } = useToast();
