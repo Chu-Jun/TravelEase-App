@@ -1062,6 +1062,13 @@ export const createExpenseAction = async (formData: any) => {
   const category = formData.category as string;
   const remarks = formData.remarks as string;
 
+  if(date == null || date == "" || formData.amountspent == "" || amountspent == null || amountspent <= 0 || category == null){
+    return {
+      status: "error",
+      message: "Please fill in the compulsory field mark with * (Amount spent cannot be less than or equal to 0)",
+    };
+  }
+
   const { data, error } = await supabase
     .from("expenserecord")
     .insert({
@@ -1108,6 +1115,13 @@ export const editExpenseAction = async (formData: any) => {
   const amountspent = parseFloat(formData.amountspent);
   const category = formData.category as string;
   const remarks = formData.remarks as string;
+
+  if(date == null || date == "" || formData.amountspent == "" || amountspent == null || amountspent <= 0 || category == null){
+    return {
+      status: "error",
+      message: "Please fill in the compulsory field mark with * (Amount spent cannot be less than or equal to 0)",
+    };
+  }
 
   const { data, error } = await supabase
     .from("expenserecord")

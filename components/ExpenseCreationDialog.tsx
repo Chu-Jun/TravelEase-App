@@ -107,7 +107,7 @@ export default function ExpenseCreationDialog({tripData}: any) {
                             name="date"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Date</FormLabel>
+                                    <FormLabel>Date *</FormLabel>
                                     <FormControl>
                                         <Input type="date" placeholder="Select Date" {...field} />
                                     </FormControl>
@@ -120,7 +120,7 @@ export default function ExpenseCreationDialog({tripData}: any) {
                             name="amountspent"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Amount Spent</FormLabel>
+                                    <FormLabel>Amount Spent *</FormLabel>
                                     <FormControl>
                                         <Input placeholder="Amount Spent" {...field} />
                                     </FormControl>
@@ -133,7 +133,7 @@ export default function ExpenseCreationDialog({tripData}: any) {
                             name="category"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Category</FormLabel>
+                                    <FormLabel>Category *</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                                         <FormControl>
                                             <SelectTrigger>
