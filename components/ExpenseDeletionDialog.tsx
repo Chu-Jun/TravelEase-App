@@ -50,7 +50,7 @@ export default function ExpenseDeletionDialog({expenseData, open, onOpenChange}:
                 Delete Record
             </Button>
         </DialogTrigger>
-        <DialogContent className="text-black flex flex-col items-center justify-center rounded-md bg-white shadow-xl fixed">
+        <DialogContent className="text-black flex flex-col items-center justify-center rounded-md bg-white shadow-xl fixed w-[90%]">
             <DialogHeader>
                 <div className="text-yellow-500 text-7xl text-center mb-2">
                     <FontAwesomeIcon icon={faExclamationCircle}/>
@@ -62,7 +62,7 @@ export default function ExpenseDeletionDialog({expenseData, open, onOpenChange}:
                     Do you want to delete this expense record?
                 </p>
             </DialogHeader>
-            <DialogFooter className="flex justify-center gap-4 mt-3">
+            <DialogFooter className="flex flex-row justify-center gap-4 mt-3">
                 <Button
                     onClick={handleDeleteTrip}
                     className="bg-secondary text-white hover:bg-red-700"
