@@ -64,7 +64,7 @@ export default function Signup() {
     }
 
   return (
-    <div className="min-h-screen px-8 mb-8 lg:px-16 lg:py-8 text-primary">
+    <div className="min-h-screen px-8 mb-8 lg:px-16 lg:py-8 text-primary mt-28 md:mt-0 lg:mt-0 ">
         <Card className="m-auto w-full bg-white md:w-3/4 lg:w-1/3">
             <CardHeader>
                 <CardTitle>Sign Up</CardTitle>

@@ -88,7 +88,7 @@ export default function ExpenseEditDialog({expenseData, open, onOpenChange}: any
             <DialogContent className="text-black w-4/5 rounded-lg">
                 <DialogHeader>
                     <DialogTitle>
-                        <p className="text-primary font-extrabold">Edit Expense Record</p>
+                        <p className="text-title font-extrabold">Edit Expense Record</p>
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>

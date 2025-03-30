@@ -140,7 +140,7 @@ const ItineraryPlanningPage = () => {
         {/* Sidebar for trip list - becomes an overlay on mobile */}
         <div 
           className={`${
-            sidebarOpen ? "fixed inset-0 z-50 bg-white" : "hidden"
+            sidebarOpen ? "fixed inset-0 z-50 bg-white overflow-y-scroll" : "hidden"
           } md:relative md:block md:w-1/4 md:overflow-y-auto lg:overflow-y-visible lg:min-h-max p-4 space-y-4 bg-white`}
           style={{ 
             maxHeight: sidebarOpen ? "100vh" : "calc(100vh - 4rem)",
