@@ -147,7 +147,9 @@ const ExpenseTrackingPage: React.FC = () => {
             <span className="truncate">{selectedTrip?.tripname}</span>
             <FontAwesomeIcon className="ml-2" icon={faCaretDown} />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="text-black w-full">
+          <DropdownMenuContent side="bottom" 
+            align="start" 
+            className="w-[var(--radix-popper-anchor-width)] text-black">
             {trips.map((trip) => (
               <DropdownMenuItem
                 key={trip.tripid}
