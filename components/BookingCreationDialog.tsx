@@ -134,7 +134,7 @@ export default function BookingCreationDialog({ tripData }: any) {
           + Add Booking Record
         </Button>
       </DialogTrigger>
-      <DialogContent className="text-black w-4/5 rounded-lg max-h-[70%] overflow-auto">
+      <DialogContent className="text-black w-[90%] max-w-lg rounded-lg max-h-[70%] overflow-y-auto mx-auto">
         <DialogHeader>
           <DialogTitle>
             <p className="text-title font-extrabold">Add Booking Record</p>
@@ -146,14 +146,14 @@ export default function BookingCreationDialog({ tripData }: any) {
               e.preventDefault();
               form.handleSubmit(onSubmit)(e);
             }}
-            className="space-y-6"
+            className="space-y-6 max-w-full"
           >
             {/* Booking Type Selection */}
             <FormItem>
               <FormLabel>Select Booking Type</FormLabel>
               <FormControl>
               <RadioGroup.Root value={bookingType} onValueChange={setBookingType}>
-                <div className="flex space-x-4">
+                <div className="flex space-x-2">
                   <div className="bg-primary rounded-lg p-2 text-white">
                     <RadioGroup.Item value="accommodation" id="accommodation" />
                     <label htmlFor="accommodation">Accommodation</label>
