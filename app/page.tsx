@@ -88,7 +88,7 @@ export default function Home() {
             </Button>
             
             {isMobileFormExpanded && (
-              <div className="absolute -top-20 mx-4 z-50 bg-blue-50/90 rounded-xl p-4">
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-blue-50/90 rounded-xl p-4 w-11/12 max-w-md shadow-lg">
                 <button 
                   className="float-right"
                   onClick={() => setIsMobileFormExpanded(false)}
