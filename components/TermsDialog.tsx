@@ -46,7 +46,7 @@ export default function TermsDialog() {
                         <p>We reserve the right to suspend or terminate accounts that violate these terms or misuse our services.</p>
 
                         <p><strong>7. Limitation of Liability</strong></p>
-                        <p>TravelEase is provided "as-is." We are not liable for any indirect or consequential damages arising from your use of the platform.</p>
+                        <p>TravelEase is provided &apos;as-is.&apos; We are not liable for any indirect or consequential damages arising from your use of the platform.</p>
 
                         <p><strong>8. Changes to Terms</strong></p>
                         <p>We may update these Terms & Conditions at any time. Continued use of TravelEase indicates acceptance of any changes.</p>
