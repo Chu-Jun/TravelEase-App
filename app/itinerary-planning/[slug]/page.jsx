@@ -9,6 +9,7 @@ import {
   faSave,
   faMap
 } from "@fortawesome/free-solid-svg-icons";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { 
   getTripById, 
@@ -496,7 +497,7 @@ const optimizeRoute = async (day) => {
               ))}
             </ul>
           </li>
-          <li className="text-gray-800 font-semibold">Booking / Reservation</li>
+          <li><Link className="text-gray-800 font-semibold" href={`/booking-management/${slug}`}>Booking / Reservation</Link></li>
         </ul>
       </div>
 
