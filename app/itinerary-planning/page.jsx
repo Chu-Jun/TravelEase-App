@@ -302,7 +302,7 @@ const ItineraryPlanningPage = () => {
                     {expandedSections.progress ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                   </div>
                   
-                  <Link href={`/booking-management`}>
+                  <Link href={`/booking-management/${selectedTrip.tripid}`}>
                   {expandedSections.progress && (
                     <div className="space-y-3">
                       {/* Planning progress bar */}
