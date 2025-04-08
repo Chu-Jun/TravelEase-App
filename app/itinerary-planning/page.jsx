@@ -302,7 +302,7 @@ const ItineraryPlanningPage = () => {
                     {expandedSections.progress ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                   </div>
                   
-                  <Link href={`/booking-management`}>
+                  <Link href={`/booking-management/${selectedTrip.tripid}`}>
                   {expandedSections.progress && (
                     <div className="space-y-3">
                       {/* Planning progress bar */}
@@ -372,7 +372,7 @@ const ItineraryPlanningPage = () => {
                 </div>
 
                 {/* Trip budget snapshot - always expanded on desktop */}
-                <Link href={`/expense-tracking`}>
+                <Link href={`/expense-tracking/${selectedTrip.tripid}`}>
                 <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
                   <h3 className="text-lg font-bold mb-3">Budget Snapshot</h3>
                   <div className="flex justify-between">
