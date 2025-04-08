@@ -16,7 +16,10 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Box } from "@/components/ui/box";
+import { Checkbox } from "@/components/ui/checkbox";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import TermsDialog from "@/components/TermsDialog";
+import PrivacyDialog from "@/components/PrivacyDialog";
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -25,6 +28,9 @@ const formSchema = z.object({
     }),
     password: z.string().min(8, {
         message: "Password must be at least 8 characters."
+    }),
+    policyAgreement: z.literal(true, {
+        errorMap: () => ({ message: "You must agree to the Terms and Privacy Policy." })
     })
 })
 
@@ -38,6 +44,7 @@ export default function Signup() {
     email: string;
     username: string;
     password: string;
+    policyAgreement: true;
   }
 
   const form = useForm<FormValues>({
@@ -46,6 +53,7 @@ export default function Signup() {
         email: "",
         username: "",
         password: "",
+        policyAgreement: true
       },
   })
 
@@ -124,6 +132,26 @@ export default function Signup() {
                                     </Box>
                                 </FormControl>
                                 <FormMessage/>
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="policyAgreement"
+                        render={({ field }) => (
+                            <FormItem className="space-y-2">
+                            <div className="flex items-start space-x-2">
+                                <FormControl>
+                                <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                                </FormControl>
+                                <div className="text-sm leading-snug mt-0.5">
+                                I agree to the <TermsDialog /> and <PrivacyDialog />.
+                                </div>
+                            </div>
+                            <FormMessage />
                             </FormItem>
                         )}
                         />
