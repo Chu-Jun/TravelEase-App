@@ -372,7 +372,7 @@ const ItineraryPlanningPage = () => {
                 </div>
 
                 {/* Trip budget snapshot - always expanded on desktop */}
-                <Link href={`/expense-tracking`}>
+                <Link href={`/expense-tracking/${selectedTrip.tripid}`}>
                 <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
                   <h3 className="text-lg font-bold mb-3">Budget Snapshot</h3>
                   <div className="flex justify-between">
