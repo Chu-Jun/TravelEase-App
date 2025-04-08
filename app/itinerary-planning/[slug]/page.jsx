@@ -480,7 +480,7 @@ const optimizeRoute = async (day) => {
       {/* Sidebar */}
       <div className="hidden md:block w-full md:w-1/4 bg-white p-4">
         <ul className="space-y-4">
-          <li className="text-gray-800 font-semibold">Overview</li>
+          <li><Link className="text-gray-800 font-semibold" href={`/itinerary-planning`}>Overview</Link></li>
           <li className="text-gray-800 font-semibold">
             <span>Itinerary</span>
             <ul className="ml-4 mt-2 space-y-2">
