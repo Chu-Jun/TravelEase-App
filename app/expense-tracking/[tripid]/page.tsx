@@ -282,17 +282,18 @@ const ExpenseTrackingPage: React.FC = () => {
       <div className="w-1/4 p-4 space-y-4 bg-white min-h-screen">
         <h2 className="text-3xl font-bold">My Trip</h2>
         <DropdownMenu>
-          <DropdownMenuTrigger>
-            <span className="px-12 py-1 font-medium text-gray-800 hover:text-black bg-gray-300 rounded-md">
-              {selectedTrip?.tripname}
-              <FontAwesomeIcon className="ml-4" icon={faCaretDown} />
-            </span>
+          <DropdownMenuTrigger className="mt-2 w-full px-4 py-2 font-medium text-gray-800 hover:text-black bg-gray-300 rounded-md flex items-center justify-between">
+            <span className="truncate">{selectedTrip?.tripname}</span>
+            <FontAwesomeIcon className="ml-2" icon={faCaretDown} />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="text-black">
+          <DropdownMenuContent side="bottom" 
+            align="start" 
+            className="w-[var(--radix-popper-anchor-width)] text-black">
             {trips.map((trip) => (
               <DropdownMenuItem
                 key={trip.tripid}
                 onSelect={() => setSelectedTrip(trip)}
+                className="py-3 w-full"
               >
                 {trip.tripname}
               </DropdownMenuItem>
