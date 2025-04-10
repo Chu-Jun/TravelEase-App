@@ -35,7 +35,7 @@ const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking, accom
       text: `Activity: ${activity.activityname}`,
       start: `${activity.activitydate}T${activity.starttime}`,
       end: `${activity.activitydate}T${activity.endtime}`,
-      backColor: "#0097D1" // Blue for activities
+      backColor: "#56c4f8", // Blue for activities
     })) || [];
 
     // Convert flightBooking into event format
@@ -49,7 +49,7 @@ const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking, accom
         text: `Flight: ${flight.flightcode} (${flight.airline})`,
         start: `${flight.flightdate}T${departTime}`,
         end: `${flight.flightdate}T${arrivalTime}`,
-        backColor: "#e17100" // Yellow for flights
+        backColor: "#FFB300", // Yellow for flights
       };
     }) || [];
 
@@ -58,7 +58,7 @@ const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking, accom
       text: `Accommodation: ${accommodation.location?.locationname}`,
       start: `${accommodation.checkindate}T${accommodation.checkintime ?? "15:00:00"}`, // Default check-in at 3 PM
       end: `${accommodation.checkoutdate}T${accommodation.checkouttime ?? "12:00:00"}`, // Default check-out at 12 PM
-      backColor: "#cc4125" // Red for accommodations
+      backColor: "#2dca33", // Green for accommodations
     })) || [];
 
     // Combine both event types

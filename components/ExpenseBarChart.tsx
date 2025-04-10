@@ -105,7 +105,7 @@ const ExpenseBarChart: React.FC<ExpenseBarChartProps> = ({ expenses, totalExpens
   }
 
   return (
-    <div className="mt-6">
+    <div className="">
         <div className="justify-content: space-between">
             <h3 className="text-xl font-semibold mb-2">This Trip Spend</h3>
             <h2 className="text-xxl font-semibold mb-2">RM {totalExpense}</h2>
