@@ -1,13 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 
-// Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-// Define expense type
 interface Expense {
   expensesrecordid?: string;
   tripid?: string;
@@ -41,9 +38,9 @@ const colorsList = [
 
 const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses }) => {
   const [pieChartData, setPieChartData] = useState<any>(null);
+  const [legendPosition, setLegendPosition] = useState<"right" | "bottom">("right");
 
   const generatePieChartData = useCallback(() => {
-    // Group expenses by category and sum up the amounts
     const categoryGrouped = Object.values(
       expenses.reduce<Record<string, { category: string; totalAmount: number }>>((acc, { amountspent, category }) => {
         const key = category;
@@ -53,11 +50,9 @@ const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses }) => {
       }, {})
     );
 
-    // Extract labels (categories) and data (amounts)
     const labels = categoryGrouped.map(item => item.category);
     const data = categoryGrouped.map(item => item.totalAmount);
 
-    // Create the chart data object
     const chartData = {
       labels,
       datasets: [
@@ -81,12 +76,22 @@ const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses }) => {
     }
   }, [expenses, generatePieChartData]);
 
-  // Chart options
+  useEffect(() => {
+    const handleResize = () => {
+      setLegendPosition(window.innerWidth < 640 ? "bottom" : "right");
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'right' as const,
+        position: legendPosition,
       },
     },
   };
@@ -96,9 +101,9 @@ const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses }) => {
   }
 
   return (
-    <div className="mt-4">
+    <div className="">
       <h3 className="text-xl font-semibold mb-2">Expenses by Category</h3>
-      <div className="w-full max-h-full flex justify-center ">
+      <div className="mt-5 mb-5 w-full max-w-full h-[200px] md:h-[350px] relative">
         <Pie data={pieChartData} options={options} />
       </div>
     </div>
