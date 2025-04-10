@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Footer from "@/components/Footer";
 import BestPlaceCarousel from "@/components/BestPlaceCarousel";
 import { z } from "zod";
@@ -46,6 +46,18 @@ export default function Home() {
       },
   });
 
+  useEffect(() => {
+    if (isMobileFormExpanded) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileFormExpanded]);
+
   async function onSubmit(values: any) {
     const result = await createTripAction(values);
 
@@ -88,117 +100,122 @@ export default function Home() {
             </Button>
             
             {isMobileFormExpanded && (
-              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-blue-50/90 rounded-xl p-4 w-11/12 max-w-md shadow-lg">
-                <button 
-                  className="float-right"
-                  onClick={() => setIsMobileFormExpanded(false)}
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setIsMobileFormExpanded(false)}>
+                <div
+                  className="bg-blue-50/90 rounded-xl p-4 w-11/12 max-w-md shadow-lg relative"
+                  onClick={(e) => e.stopPropagation()} // prevents dialog click from closing
                 >
-                  X
-                </button>
-                <Form {...form}>
-                  <form onSubmit={(e) => {
-                      e.preventDefault();
-                      form.handleSubmit(onSubmit)(e);
-                  }}>
-                    <div className="flex flex-col gap-4 w-full">
-                      <FormField
-                        control={form.control}
-                        name="tripName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-title font-medium">Destination</FormLabel>
-                            <FormControl>
-                              <Input className="bg-white" placeholder="Plan a new trip to:" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="flex flex-row gap-4">
+                  <button 
+                    className="absolute top-2 right-2 text-black"
+                    onClick={() => setIsMobileFormExpanded(false)}
+                  >
+                    X
+                  </button>
+                  <Form {...form}>
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        form.handleSubmit(onSubmit)(e);
+                    }}>
+                      <div className="flex flex-col gap-4 w-full">
                         <FormField
                           control={form.control}
-                          name="tripStartDate"
+                          name="tripName"
                           render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className="text-title font-medium">Start Date</FormLabel>
+                            <FormItem>
+                              <FormLabel className="text-title font-medium">Destination</FormLabel>
                               <FormControl>
-                                <Input className="bg-white" type="date" {...field} />
+                                <Input className="bg-white" placeholder="Plan a new trip to:" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                         
-                        <FormField
-                          control={form.control}
-                          name="tripEndDate"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className="text-title font-medium">End Date</FormLabel>
-                              <FormControl>
-                                <Input className="bg-white" type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="flex flex-row gap-4">
-                        <FormField
-                          control={form.control}
-                          name="tag"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className="text-title font-medium">Trip Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
+                        <div className="flex flex-row gap-4">
+                          <FormField
+                            control={form.control}
+                            name="tripStartDate"
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel className="text-title font-medium">Start Date</FormLabel>
                                 <FormControl>
-                                  <SelectTrigger className="bg-white">
-                                    <SelectValue placeholder="Tag" />
-                                  </SelectTrigger>
+                                  <Input className="bg-white" type="date" {...field} />
                                 </FormControl>
-                                <SelectContent className="bg-white text-black">
-                                  <SelectItem value="N/A">Select Tag</SelectItem>
-                                  <SelectItem value="Local">Local</SelectItem>
-                                  <SelectItem value="Abroad">Abroad</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="tripEndDate"
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel className="text-title font-medium">End Date</FormLabel>
+                                <FormControl>
+                                  <Input className="bg-white" type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         
-                        <FormField
-                          control={form.control}
-                          name="touristNum"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className="text-title font-medium">Travelers</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
-                                <FormControl>
-                                  <SelectTrigger className="bg-white">
-                                    <SelectValue placeholder="Travelers" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent className="bg-white text-black">
-                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                                    <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <div className="flex flex-row gap-4">
+                          <FormField
+                            control={form.control}
+                            name="tag"
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel className="text-title font-medium">Trip Type</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
+                                  <FormControl>
+                                    <SelectTrigger className="bg-white">
+                                      <SelectValue placeholder="Tag" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent className="bg-white text-black">
+                                    <SelectItem value="N/A">Select Tag</SelectItem>
+                                    <SelectItem value="Local">Local</SelectItem>
+                                    <SelectItem value="Abroad">Abroad</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="touristNum"
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel className="text-title font-medium">Travelers</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
+                                  <FormControl>
+                                    <SelectTrigger className="bg-white">
+                                      <SelectValue placeholder="Travelers" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent className="bg-white text-black">
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                                      <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <Button type="submit" className="w-full bg-secondary text-white mt-2" disabled={form.formState.isSubmitting}>
+                          {form.formState.isSubmitting ? "Creating Trip..." : "Start Planning"}
+                        </Button>
                       </div>
-                      
-                      <Button type="submit" className="w-full bg-secondary text-white mt-2" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? "Creating Trip..." : "Start Planning"}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
+                    </form>
+                  </Form>
+                 </div>
               </div>
             )}
           </div>
@@ -318,7 +335,7 @@ export default function Home() {
           Must Visit
         </p>
         <p className="text-sm md:text-base mb-4">
-          A list of the top 75 Best Tourist Places to See in the world for a perfect trip.
+          A list of the top 25 Best Tourist Places to See in the world for a perfect trip.
         </p>
         
         <BestPlaceCarousel />
