@@ -293,7 +293,7 @@ const ItineraryPlanningPage = () => {
                 </div>
                 
                 {/* Trip planning progress */}
-                <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
+                <div className="mt-6 bg-white p-4 rounded-lg shadow-sm hover:shadow-xl hover:inset-ring">
                   <div 
                     className="flex justify-between items-center mb-3 cursor-pointer"
                     onClick={() => toggleSection('progress')}
@@ -373,7 +373,7 @@ const ItineraryPlanningPage = () => {
 
                 {/* Trip budget snapshot - always expanded on desktop */}
                 <Link href={`/expense-tracking/${selectedTrip.tripid}`}>
-                <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
+                <div className="mt-6 bg-white p-4 rounded-lg shadow-sm hover:shadow-xl hover:inset-ring">
                   <h3 className="text-lg font-bold mb-3">Budget Snapshot</h3>
                   <div className="flex justify-between">
                     <div>
