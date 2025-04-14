@@ -30,17 +30,29 @@ const ItineraryPlanningPage = () => {
       try {
         setIsLoading(true);
         const fetchedTrips = await getTrips();
-        console.log(fetchedTrips);
         if (fetchedTrips && fetchedTrips.length > 0) {
-          setTrips(fetchedTrips);
-          setSelectedTrip(fetchedTrips[0]); // Set the first trip as selected
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Ensure we compare only the date part
+    
+          const upcomingTrips = fetchedTrips
+            .filter(trip => new Date(trip.tripstartdate) >= today)
+            .sort((a, b) => new Date(a.tripstartdate).getTime() - new Date(b.tripstartdate).getTime());
+    
+          const pastTrips = fetchedTrips
+            .filter(trip => new Date(trip.tripstartdate) < today)
+            .sort((a, b) => new Date(a.tripstartdate).getTime() - new Date(b.tripstartdate).getTime());
+    
+          const sortedTrips = [...upcomingTrips, ...pastTrips];
+          setTrips(sortedTrips);
+
+          setSelectedTrip(sortedTrips[0]);
         }
       } catch (error) {
         console.error("Error fetching trips:", error);
       } finally {
         setIsLoading(false);
       }
-    };
+    };    
     
     fetchTrips();
   }, []);
@@ -179,6 +191,7 @@ const ItineraryPlanningPage = () => {
                   tag={trip.tag}
                   trip={trip}
                   active={trip.tripid === selectedTrip.tripid}
+                  startDate={trip.tripstartdate}
                 />
               </div>
             ))}

@@ -87,16 +87,29 @@ const BookingManagementPage = () => {
         setIsLoading(true);
         const fetchedTrips = await getTrips();
         if (fetchedTrips && fetchedTrips.length > 0) {
-          setTrips(fetchedTrips);
-          const matchedTrip = fetchedTrips.find((trip) => trip.tripid === tripidFromUrl);
-          setSelectedTrip(matchedTrip || fetchedTrips[0]);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Ensure we compare only the date part
+    
+          const upcomingTrips = fetchedTrips
+            .filter(trip => new Date(trip.tripstartdate) >= today)
+            .sort((a, b) => new Date(a.tripstartdate).getTime() - new Date(b.tripstartdate).getTime());
+    
+          const pastTrips = fetchedTrips
+            .filter(trip => new Date(trip.tripstartdate) < today)
+            .sort((a, b) => new Date(a.tripstartdate).getTime() - new Date(b.tripstartdate).getTime());
+    
+          const sortedTrips = [...upcomingTrips, ...pastTrips];
+          setTrips(sortedTrips);
+    
+          const matchedTrip = sortedTrips.find((trip) => trip.tripid === tripidFromUrl);
+          setSelectedTrip(matchedTrip || sortedTrips[0]);
         }
       } catch (error) {
         console.error("Error fetching trips:", error);
       } finally {
         setIsLoading(false);
       }
-    };
+    };   
   
     fetchTrips();
   }, [tripidFromUrl]);
@@ -208,6 +221,7 @@ const BookingManagementPage = () => {
                   tag={trip.tag}
                   trip={trip}
                   active={trip.tripid === selectedTrip?.tripid}
+                  startDate={trip.tripstartdate}
                 />
               </div>
             ))}
