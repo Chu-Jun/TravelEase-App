@@ -28,6 +28,14 @@ const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking, accom
     },
   };
 
+  const addMinutes = (time, minutesToAdd) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const date = new Date(0, 0, 0, hours, minutes + minutesToAdd);
+    const h = date.getHours().toString().padStart(2, "0");
+    const m = date.getMinutes().toString().padStart(2, "0");
+    return `${h}:${m}:00`;
+  };
+
   useEffect(() => {
     // Convert activityBooking into event format
     const activityEvents = activityBooking?.map(activity => ({
@@ -53,13 +61,27 @@ const BookingsCalendar = ({ tripStartDate, activityBooking, flightBooking, accom
       };
     }) || [];
 
-    const accommEvents = accommodationBooking?.map(accommodation => ({
-      id: accommodation.accommodationbookingid,
-      text: `Accommodation: ${accommodation.location?.locationname}`,
-      start: `${accommodation.checkindate}T${accommodation.checkintime ?? "15:00:00"}`, // Default check-in at 3 PM
-      end: `${accommodation.checkoutdate}T${accommodation.checkouttime ?? "12:00:00"}`, // Default check-out at 12 PM
-      backColor: "#2dca33", // Green for accommodations
-    })) || [];
+    const accommEvents = accommodationBooking?.flatMap(accommodation => {
+      const checkInTime = accommodation.checkintime ?? "15:00:00";
+      const checkOutTime = accommodation.checkouttime ?? "12:00:00";
+    
+      return [
+        {
+          id: `${accommodation.accommodationbookingid}-checkin`,
+          text: `Check-in: ${accommodation.location?.locationname}`,
+          start: `${accommodation.checkindate}T${checkInTime}`,
+          end: `${accommodation.checkindate}T${addMinutes(checkInTime, 60)}`, // show as 30-min event
+          backColor: "#2dca33",
+        },
+        {
+          id: `${accommodation.accommodationbookingid}-checkout`,
+          text: `Check-out: ${accommodation.location?.locationname}`,
+          start: `${accommodation.checkoutdate}T${checkOutTime}`,
+          end: `${accommodation.checkoutdate}T${addMinutes(checkOutTime, 60)}`, // show as 30-min event
+          backColor: "#2dca33",
+        }
+      ];
+    }) || [];    
 
     // Combine both event types
     // setEvents([...activityEvents, ...flightEvents]);

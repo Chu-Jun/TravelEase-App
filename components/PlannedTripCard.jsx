@@ -11,24 +11,30 @@ import {
 import TripEditDialog from "@/components/TripEditDialog";
 import TripDeletionDialog from "@/components/TripDeletionDialog";
 
-const PlannedTripCard = ({ tripTitle, touristNum, duration, tag, trip, active }) => {
-  // Add state to control dialog visibility
+const PlannedTripCard = ({ tripTitle, touristNum, duration, tag, trip, active, startDate }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  // Check if startDate is before today
+  const today = new Date();
+  const tripStartDate = new Date(startDate);
+  const isPastTrip = tripStartDate < today.setHours(0, 0, 0, 0); // ignore time portion
+
+  // Determine card background color
+  const cardBgColor = isPastTrip 
+    ? "bg-gray-300" 
+    : active 
+      ? "bg-lightblue" 
+      : "bg-greyblue";
+  
+    const labelBgColor = isPastTrip 
+      ? "bg-gray-500" 
+      : "bg-primary";
+
   return (
-    
-    <Card className={`shadow-md rounded-2xl p-4 flex flex-col items-start max-w-lg m-4 ${
-        active 
-          ? "bg-lightblue" 
-          : "bg-greyblue"
-      }`}>
+    <Card className={`shadow-md rounded-2xl p-4 flex flex-col items-start max-w-lg m-4 ${cardBgColor}`}>
       {/* Tag above trip title */}
-      <span className={`text-white text-sm font-semibold px-2 py-1 rounded ${
-      active 
-        ? "bg-primary" 
-        : "bg-primary"
-    }`}>
+      <span className={`text-white text-sm font-semibold px-2 py-1 rounded ${labelBgColor}`}>
         {tag}
       </span>
 
