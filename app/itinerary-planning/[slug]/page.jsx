@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
-  faLocationDot, 
+  faDownload,
   faChevronRight, 
   faChevronDown,
   faSave,
@@ -16,6 +16,8 @@ import {
   getItinerary, 
   saveItineraryDay 
 } from "@/app/actions";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import LocationPicker from "@/components/LocationPicker";
 import MapDisplay from "@/components/MapDisplay";
 import RouteOptimizationControls from "@/components/RouteOptimizationControls";
@@ -55,6 +57,7 @@ const TravelEaseItineraryPage = () => {
   const [mobileMapVisible, setMobileMapVisible] = useState(false);
   const [optimizationType, setOptimizationType] = useState("time");
   const [transportMode, setTransportMode] = useState("BOTH");
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // Fetch trip and itinerary data
   useEffect(() => {
@@ -442,6 +445,109 @@ const optimizeRoute = async (day) => {
   }
 };
 
+const downloadItineraryPDF = async () => {
+  // Show loading state using the correct state function
+  setPdfLoading(true);
+  
+  try {
+    // Create a new jsPDF instance
+    const pdf = new jsPDF("p", "mm", "a4");
+    let position = 15; // Starting position for content
+    
+    // Add title
+    pdf.setFontSize(20);
+    pdf.text(`Itinerary for ${trip.tripname}`, 105, position, { align: "center" });
+    position += 15;
+    
+    // Add trip details
+    pdf.setFontSize(12);
+    const tripDateRange = `${new Date(trip.tripstartdate).toLocaleDateString()} - ${new Date(trip.tripenddate).toLocaleDateString()}`;
+    pdf.text(`Trip Dates: ${tripDateRange}`, 105, position, { align: "center" });
+    position += 15;
+    
+    // Process each day
+    for (const day of days) {
+      // Check if we need a new page
+      if (position > 270) {
+        pdf.addPage();
+        position = 15;
+      }
+      
+      // Add day header
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, "bold");
+      const dayTitle = `${day.label} - ${day.date.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      })}`;
+      pdf.text(dayTitle, 15, position);
+      position += 10;
+      
+      // Add places for this day
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, "normal");
+      
+      const dayPlaces = editedItinerary.places[day.label] || [];
+      
+      if (dayPlaces.length === 0 || (dayPlaces.length === 1 && (!dayPlaces[0] || !dayPlaces[0].name))) {
+        pdf.text("No places added for this day", 20, position);
+        position += 8;
+      } else {
+        for (let i = 0; i < dayPlaces.length; i++) {
+          const place = dayPlaces[i];
+          
+          // Check if we need a new page
+          if (position > 270) {
+            pdf.addPage();
+            position = 15;
+          }
+          
+          if (place && place.name) {
+            // Add place number and name
+            pdf.setFont(undefined, "bold");
+            pdf.text(`${i + 1}. ${place.name}`, 20, position);
+            position += 6;
+            
+            // Add place address if available
+            if (place.formattedAddress) {
+              pdf.setFont(undefined, "normal");
+              pdf.text(place.formattedAddress, 25, position);
+              position += 6;
+            }
+            
+            // Add transportation mode if available
+            if (editedItinerary.transportModes && 
+                editedItinerary.transportModes[day.label] && 
+                editedItinerary.transportModes[day.label].travelModes && 
+                i < editedItinerary.transportModes[day.label].travelModes.length) {
+              const mode = editedItinerary.transportModes[day.label].travelModes[i];
+              if (mode) {
+                pdf.setFont(undefined, "italic");
+                pdf.text(`Transportation: ${mode}`, 25, position);
+                position += 8;
+              }
+            } else {
+              position += 2;
+            }
+          }
+        }
+      }
+      
+      position += 10; // Add space between days
+    }
+    
+    // Save the PDF
+    pdf.save(`${trip.tripname}-itinerary.pdf`);
+    
+  } catch (err) {
+    console.error("Error generating PDF:", err);
+    setError("Error generating PDF. Please try again.");
+  } finally {
+    setPdfLoading(false);
+  }
+};
+
   // Render loading state
   if (loading) {
     return (
@@ -503,7 +609,17 @@ const optimizeRoute = async (day) => {
 
       {/* Main content */}
       <div className="w-full md:w-3/4 flex flex-col">
-        <h2 className="text-2xl font-bold p-6 pb-2">Itinerary for {trip.tripname}</h2>
+        <div className="flex justify-between items-center p-6 pb-2">
+          <h2 className="text-2xl font-bold">Itinerary for {trip.tripname}</h2>
+          <button
+            onClick={downloadItineraryPDF}
+            disabled={loading}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+          >
+            <FontAwesomeIcon icon={faDownload} />
+            {loading ? "Generating..." : "Download PDF"}
+          </button>
+        </div>
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mx-6 mb-2">
             {error}
