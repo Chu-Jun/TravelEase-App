@@ -19,6 +19,66 @@ import {
 import LocationPicker from "@/components/LocationPicker";
 import MapDisplay from "@/components/MapDisplay";
 import RouteOptimizationControls from "@/components/RouteOptimizationControls";
+import TimeConstraintsManager from "@/components/TimeConstraintsManager";
+import ScheduleDisplay from "@/components/ScheduleDisplay";
+
+const sampleScheduleData = {
+  "all_time_constraints_met": true,
+  "optimization_type": "time",
+  "optimized_sequence": [
+      "Singapore Zoo",
+      "Universal Studios Singapore",
+      "Gardens by the Bay"
+  ],
+  "optimized_time_seconds": 8742,
+  "preferred_mode": "TRANSIT",
+  "schedule": [
+      {
+          "arrival_time": "09:00",
+          "departure_time": "10:00",
+          "location": "Singapore Zoo",
+          "travel_from_previous": null
+      },
+      {
+          "arrival_time": "11:30",
+          "departure_time": "12:30",
+          "location": "Universal Studios Singapore",
+          "travel_from_previous": {
+              "distance_km": 33.1,
+              "duration": "1 hr 30 min",
+              "duration_seconds": 5436,
+              "mode": "TRANSIT: Bus"
+          }
+      },
+      {
+          "arrival_time": "13:25",
+          "departure_time": "14:25",
+          "location": "Gardens by the Bay",
+          "travel_from_previous": {
+              "distance_km": 9.2,
+              "duration": "55 min",
+              "duration_seconds": 3306,
+              "mode": "TRANSIT: Tram"
+          }
+      }
+  ],
+  "start_time": "2025-04-05T09:00",
+  "summary": {
+      "routable_locations": 3,
+      "total_distance_km": 42.3,
+      "total_itinerary_seconds": 19542,
+      "total_itinerary_time": "5 hr 25 min",
+      "total_locations": 3,
+      "total_travel_time": "2 hr 25 min",
+      "total_travel_time_seconds": 8742,
+      "unroutable_locations": 0
+  },
+  "travel_modes": [
+      "TRANSIT: Bus",
+      "TRANSIT: Tram"
+  ],
+  "visit_duration_minutes": 60
+};
 
 const generateDays = (startDate, endDate) => {
   if (!startDate || !endDate) return [];
@@ -55,6 +115,7 @@ const TravelEaseItineraryPage = () => {
   const [mobileMapVisible, setMobileMapVisible] = useState(false);
   const [optimizationType, setOptimizationType] = useState("time");
   const [transportMode, setTransportMode] = useState("BOTH");
+  const [visitDurationMinutes, setVisitDurationMinutes] = useState(60);
 
   // Fetch trip and itinerary data
   useEffect(() => {
@@ -442,6 +503,62 @@ const optimizeRoute = async (day) => {
   }
 };
 
+const handleTimeConstraintsChange = (day, constraints) => {
+  setEditedItinerary(prev => {
+    const newItinerary = JSON.parse(JSON.stringify(prev));
+    
+    // Initialize timeConstraints object if it doesn't exist
+    if (!newItinerary.timeConstraints) {
+      newItinerary.timeConstraints = {};
+    }
+    
+    // Update constraints for this day
+    newItinerary.timeConstraints[day] = constraints;
+    
+    // Mark as changed
+    setHasChanges(prevChanges => ({
+      ...prevChanges,
+      [day]: true
+    }));
+    
+    return newItinerary;
+  });
+};
+
+// Add this function to handle start time changes
+const handleStartTimeChange = (day, startTime) => {
+  setEditedItinerary(prev => {
+    const newItinerary = JSON.parse(JSON.stringify(prev));
+    
+    // Initialize startTimes object if it doesn't exist
+    if (!newItinerary.startTimes) {
+      newItinerary.startTimes = {};
+    }
+    
+    // Update start time for this day
+    newItinerary.startTimes[day] = startTime;
+    
+    // Mark as changed
+    setHasChanges(prevChanges => ({
+      ...prevChanges,
+      [day]: true
+    }));
+    
+    return newItinerary;
+  });
+};
+
+// Add this function to handle visit duration changes
+const handleVisitDurationChange = (duration) => {
+  setVisitDurationMinutes(duration);
+  
+  setEditedItinerary(prev => {
+    const newItinerary = JSON.parse(JSON.stringify(prev));
+    newItinerary.visitDurationMinutes = duration;
+    return newItinerary;
+  });
+};
+
   // Render loading state
   if (loading) {
     return (
@@ -536,48 +653,78 @@ const optimizeRoute = async (day) => {
                   />
                 </h3>
                 {!collapsedSections[day.label] && (
-                <div className="mt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-medium">Places to Visit</h4>
-                    <div className="flex items-center gap-2">
-                      {hasChanges[day.label] && (
-                        <button 
-                          onClick={() => saveChanges(day.label)}
-                          disabled={savingDay === day.label}
-                          className={`${
-                            savingDay === day.label ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'
-                          } text-white px-3 py-1 rounded-md flex items-center gap-1 text-sm transition-colors`}
-                        >
-                          <FontAwesomeIcon icon={faSave} />
-                          {savingDay === day.label ? 'Saving...' : 'Save Changes'}
-                        </button>
-                      )}
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-medium">Places to Visit</h4>
+                      <div className="flex items-center gap-2">
+                        {hasChanges[day.label] && (
+                          <button 
+                            onClick={() => saveChanges(day.label)}
+                            disabled={savingDay === day.label}
+                            className={`${
+                              savingDay === day.label ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'
+                            } text-white px-3 py-1 rounded-md flex items-center gap-1 text-sm transition-colors`}
+                          >
+                            <FontAwesomeIcon icon={faSave} />
+                            {savingDay === day.label ? 'Saving...' : 'Save Changes'}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="w-full sm:max-w-md lg:max-w-lg overflow-hidden">
-                    <RouteOptimizationControls 
+                    
+                    {/* Time Constraints Manager */}
+                    <TimeConstraintsManager
                       dayLabel={day.label}
-                      onOptimize={optimizeRoute}
-                      loading={optimizationLoading}
-                      optimizationType={optimizationType}
-                      setOptimizationType={setOptimizationType}
-                      transportMode={transportMode}
-                      setTransportMode={setTransportMode}
+                      locations={(editedItinerary.markers && editedItinerary.markers[day.label]) || []}
+                      timeConstraints={(editedItinerary.timeConstraints && editedItinerary.timeConstraints[day.label]) || []}
+                      startTime={(editedItinerary.startTimes && editedItinerary.startTimes[day.label]) || 
+                        `${day.date.toISOString().split('T')[0]}T09:00`}
+                      visitDuration={editedItinerary.visitDurationMinutes || visitDurationMinutes}
+                      onTimeConstraintsChange={(constraints) => handleTimeConstraintsChange(day.label, constraints)}
+                      onStartTimeChange={(time) => handleStartTimeChange(day.label, time)}
+                      onVisitDurationChange={handleVisitDurationChange}
                     />
+                    
+                    <div className="w-full sm:max-w-md lg:max-w-lg overflow-hidden">
+                      <RouteOptimizationControls 
+                        dayLabel={day.label}
+                        onOptimize={optimizeRoute}
+                        loading={optimizationLoading}
+                        optimizationType={optimizationType}
+                        setOptimizationType={setOptimizationType}
+                        transportMode={transportMode}
+                        setTransportMode={setTransportMode}
+                      />
+                    </div>
+                    
+                    <LocationPicker
+                      places={(editedItinerary.places && editedItinerary.places[day.label]) || [""]}
+                      onPlacesChange={handlePlacesChange}
+                      dayLabel={day.label}
+                      onMoveUp={moveUp}
+                      onMoveDown={moveDown}
+                      onRemovePlace={removePlace}
+                      onAddPlace={addPlace}
+                      transportModes={editedItinerary.transportModes || {}}
+                    />
+
+                    {/* Schedule Display */}
+                    {editedItinerary.schedule && editedItinerary.schedule[day.label] ? (
+                      <ScheduleDisplay 
+                        schedule={editedItinerary.schedule[day.label]}
+                        summary={editedItinerary.summary?.[day.label]}
+                      />
+                    ) : (
+                      // Fallback to sample data when no actual schedule exists
+                      day.label === "Day 1" && (
+                        <ScheduleDisplay 
+                          schedule={sampleScheduleData.schedule}
+                          summary={sampleScheduleData.summary}
+                        />
+                      )
+                    )}
                   </div>
-                  
-                  <LocationPicker
-                    places={(editedItinerary.places && editedItinerary.places[day.label]) || [""]}
-                    onPlacesChange={handlePlacesChange}
-                    dayLabel={day.label}
-                    onMoveUp={moveUp}
-                    onMoveDown={moveDown}
-                    onRemovePlace={removePlace}
-                    onAddPlace={addPlace}
-                    transportModes={editedItinerary.transportModes || {}}
-                  />
-                </div>
-              )}
+                )}
               </div>
             ))}
           </div>
