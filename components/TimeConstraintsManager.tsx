@@ -34,9 +34,21 @@ const TimeConstraintsManager: React.FC<TimeConstraintsManagerProps> = ({
 }) => {
   const [showTimeSettings, setShowTimeSettings] = useState<boolean>(false);
 
-  const formatDateForInput = (dateString: string | number | Date): string => {
+  const formatDateForInput = (dateString: string): string => {
     if (!dateString) return "";
-    return new Date(dateString).toISOString().slice(0, 16);
+    
+    // If it already has the right format (YYYY-MM-DDTHH:MM), return it
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    
+    try {
+      // Otherwise, convert to Date and format
+      return new Date(dateString).toISOString().slice(0, 16);
+    } catch (e) {
+      console.error("Error formatting date:", e);
+      return "";
+    }
   };
 
   const addConstraint = () => {

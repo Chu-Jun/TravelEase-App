@@ -91,7 +91,7 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, summary }) 
     <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
             <Button
-                className="bg-secondary text-white mt-2 md:w-1/3 md:self-center min-w-fit"
+                className="bg-secondary text-white mt-2 md:w-1/3 md:self-center min-w-fit animate-pulse"
             >
                 View Optimized Schedule
             </Button>
