@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
-  faLocationDot, 
+  faDownload,
   faChevronRight, 
   faChevronDown,
   faSave,
@@ -16,6 +16,8 @@ import {
   getItinerary, 
   saveItineraryDay 
 } from "@/app/actions";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import LocationPicker from "@/components/LocationPicker";
 import MapDisplay from "@/components/MapDisplay";
 import RouteOptimizationControls from "@/components/RouteOptimizationControls";
@@ -57,6 +59,7 @@ const TravelEaseItineraryPage = () => {
   const [mobileMapVisible, setMobileMapVisible] = useState(false);
   const [optimizationType, setOptimizationType] = useState("time");
   const [transportMode, setTransportMode] = useState("BOTH");
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [visitDurationMinutes, setVisitDurationMinutes] = useState(60);
   // New state to track which days have schedules
   const [daysWithSchedules, setDaysWithSchedules] = useState({});
@@ -599,7 +602,17 @@ const TravelEaseItineraryPage = () => {
 
       {/* Main content */}
       <div className="w-full md:w-3/4 flex flex-col">
-        <h2 className="text-2xl font-bold p-6 pb-2">Itinerary for {trip.tripname}</h2>
+        <div className="flex justify-between items-center p-6 pb-2">
+          <h2 className="text-2xl font-bold">Itinerary for {trip.tripname}</h2>
+          <button
+            onClick={downloadItineraryPDF}
+            disabled={loading}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+          >
+            <FontAwesomeIcon icon={faDownload} />
+            {loading ? "Generating..." : "Download PDF"}
+          </button>
+        </div>
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mx-6 mb-2">
             {error}

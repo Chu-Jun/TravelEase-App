@@ -30,17 +30,29 @@ const ItineraryPlanningPage = () => {
       try {
         setIsLoading(true);
         const fetchedTrips = await getTrips();
-        console.log(fetchedTrips);
         if (fetchedTrips && fetchedTrips.length > 0) {
-          setTrips(fetchedTrips);
-          setSelectedTrip(fetchedTrips[0]); // Set the first trip as selected
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Ensure we compare only the date part
+    
+          const upcomingTrips = fetchedTrips
+            .filter(trip => new Date(trip.tripstartdate) >= today)
+            .sort((a, b) => new Date(a.tripstartdate).getTime() - new Date(b.tripstartdate).getTime());
+    
+          const pastTrips = fetchedTrips
+            .filter(trip => new Date(trip.tripstartdate) < today)
+            .sort((a, b) => new Date(a.tripstartdate).getTime() - new Date(b.tripstartdate).getTime());
+    
+          const sortedTrips = [...upcomingTrips, ...pastTrips];
+          setTrips(sortedTrips);
+
+          setSelectedTrip(sortedTrips[0]);
         }
       } catch (error) {
         console.error("Error fetching trips:", error);
       } finally {
         setIsLoading(false);
       }
-    };
+    };    
     
     fetchTrips();
   }, []);
@@ -141,7 +153,7 @@ const ItineraryPlanningPage = () => {
         <div 
           className={`${
             sidebarOpen ? "fixed inset-0 z-50 bg-white overflow-y-scroll" : "hidden"
-          } md:relative md:block md:w-1/4 md:overflow-y-auto lg:overflow-y-visible lg:min-h-max p-4 space-y-4 bg-white`}
+          } md:relative md:block md:w-1/4 md:overflow-y-auto lg:overflow-y-visible lg:min-h-screen p-4 space-y-4 bg-white`}
           style={{ 
             maxHeight: sidebarOpen ? "100vh" : "calc(100vh - 4rem)",
             transition: "all 0.3s ease-in-out" 
@@ -179,6 +191,7 @@ const ItineraryPlanningPage = () => {
                   tag={trip.tag}
                   trip={trip}
                   active={trip.tripid === selectedTrip.tripid}
+                  startDate={trip.tripstartdate}
                 />
               </div>
             ))}
@@ -293,7 +306,7 @@ const ItineraryPlanningPage = () => {
                 </div>
                 
                 {/* Trip planning progress */}
-                <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
+                <div className="mt-6 bg-white p-4 rounded-lg shadow-sm hover:shadow-xl hover:inset-ring">
                   <div 
                     className="flex justify-between items-center mb-3 cursor-pointer"
                     onClick={() => toggleSection('progress')}
@@ -373,7 +386,7 @@ const ItineraryPlanningPage = () => {
 
                 {/* Trip budget snapshot - always expanded on desktop */}
                 <Link href={`/expense-tracking/${selectedTrip.tripid}`}>
-                <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
+                <div className="mt-6 bg-white p-4 rounded-lg shadow-sm hover:shadow-xl hover:inset-ring">
                   <h3 className="text-lg font-bold mb-3">Budget Snapshot</h3>
                   <div className="flex justify-between">
                     <div>

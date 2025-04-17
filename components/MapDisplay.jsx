@@ -418,8 +418,8 @@ const MapDisplay = ({ itineraryData, activeDay }) => {
                 const polyline = new google.maps.Polyline({
                   path: path,
                   geodesic: true,
-                  strokeColor: '#4285F4',
-                  strokeOpacity: 0.8,
+                  strokeColor: '#0096FF',
+                  strokeOpacity: 1,
                   strokeWeight: 4
                 });
                 
