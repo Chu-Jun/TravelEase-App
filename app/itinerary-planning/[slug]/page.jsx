@@ -392,10 +392,13 @@ const TravelEaseItineraryPage = () => {
           lng: marker.coordinate.lng
         })),
         // Use the custom startTime if available, otherwise generate from the day's date
-        start_time: (editedItinerary.startTimes && editedItinerary.startTimes[day]) || 
-                   (dayObj ? `${dayObj.date.toISOString().split('T')[0]}T09:00` : 
-                   // Fallback to current date if nothing else works
-                   `${new Date().toISOString().split('T')[0]}T09:00`),
+        start_time: (editedItinerary.startTimes && editedItinerary.startTimes[day]) ||
+                   (dayObj 
+                     ? `${dayObj.date.toISOString().split('T')[0]}T${new Date().toTimeString().split(' ')[0].slice(0, 5)}` 
+                     // Fallback to current date if nothing else works
+                     : `${new Date().toISOString().split('T')[0]}T${new Date().toTimeString().split(' ')[0].slice(0, 5)}`
+                   ),
+                 
         location_time_constraints: editedItinerary.timeConstraints?.[day] || [],
         preferred_mode: transportMode,
         optimization_type: optimizationType,
@@ -403,7 +406,7 @@ const TravelEaseItineraryPage = () => {
       };
       
       // Call the API
-      const response = await fetch('http://localhost:5000/api/optimize-route', {
+      const response = await fetch('https://striking-joy-452217-j3.df.r.appspot.com/api/optimize-route', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -541,6 +544,109 @@ const TravelEaseItineraryPage = () => {
     });
   };
 
+  const downloadItineraryPDF = async () => {
+    // Show loading state using the correct state function
+    setPdfLoading(true);
+    
+    try {
+      // Create a new jsPDF instance
+      const pdf = new jsPDF("p", "mm", "a4");
+      let position = 15; // Starting position for content
+      
+      // Add title
+      pdf.setFontSize(20);
+      pdf.text(`Itinerary for ${trip.tripname}`, 105, position, { align: "center" });
+      position += 15;
+      
+      // Add trip details
+      pdf.setFontSize(12);
+      const tripDateRange = `${new Date(trip.tripstartdate).toLocaleDateString()} - ${new Date(trip.tripenddate).toLocaleDateString()}`;
+      pdf.text(`Trip Dates: ${tripDateRange}`, 105, position, { align: "center" });
+      position += 15;
+      
+      // Process each day
+      for (const day of days) {
+        // Check if we need a new page
+        if (position > 270) {
+          pdf.addPage();
+          position = 15;
+        }
+        
+        // Add day header
+        pdf.setFontSize(16);
+        pdf.setFont(undefined, "bold");
+        const dayTitle = `${day.label} - ${day.date.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}`;
+        pdf.text(dayTitle, 15, position);
+        position += 10;
+        
+        // Add places for this day
+        pdf.setFontSize(12);
+        pdf.setFont(undefined, "normal");
+        
+        const dayPlaces = editedItinerary.places[day.label] || [];
+        
+        if (dayPlaces.length === 0 || (dayPlaces.length === 1 && (!dayPlaces[0] || !dayPlaces[0].name))) {
+          pdf.text("No places added for this day", 20, position);
+          position += 8;
+        } else {
+          for (let i = 0; i < dayPlaces.length; i++) {
+            const place = dayPlaces[i];
+            
+            // Check if we need a new page
+            if (position > 270) {
+              pdf.addPage();
+              position = 15;
+            }
+            
+            if (place && place.name) {
+              // Add place number and name
+              pdf.setFont(undefined, "bold");
+              pdf.text(`${i + 1}. ${place.name}`, 20, position);
+              position += 6;
+              
+              // Add place address if available
+              if (place.formattedAddress) {
+                pdf.setFont(undefined, "normal");
+                pdf.text(place.formattedAddress, 25, position);
+                position += 6;
+              }
+              
+              // Add transportation mode if available
+              if (editedItinerary.transportModes && 
+                  editedItinerary.transportModes[day.label] && 
+                  editedItinerary.transportModes[day.label].travelModes && 
+                  i < editedItinerary.transportModes[day.label].travelModes.length) {
+                const mode = editedItinerary.transportModes[day.label].travelModes[i];
+                if (mode) {
+                  pdf.setFont(undefined, "italic");
+                  pdf.text(`Transportation: ${mode}`, 25, position);
+                  position += 8;
+                }
+              } else {
+                position += 2;
+              }
+            }
+          }
+        }
+        
+        position += 10; // Add space between days
+      }
+      
+      // Save the PDF
+      pdf.save(`${trip.tripname}-itinerary.pdf`);
+      
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+      setError("Error generating PDF. Please try again.");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   // Render loading state
   if (loading) {
     return (
@@ -655,8 +761,10 @@ const TravelEaseItineraryPage = () => {
                       dayLabel={day.label}
                       locations={(editedItinerary.markers && editedItinerary.markers[day.label]) || []}
                       timeConstraints={(editedItinerary.timeConstraints && editedItinerary.timeConstraints[day.label]) || []}
-                      startTime={(editedItinerary.startTimes && editedItinerary.startTimes[day.label]) || 
-                        `${day.date.toISOString().split('T')[0]}T09:00`}
+                      startTime={
+                        (editedItinerary.startTimes && editedItinerary.startTimes[day.label]) ||
+                        `${day.date.toISOString().split('T')[0]}T${new Date().toTimeString().split(' ')[0].slice(0, 5)}`
+                      }
                       visitDuration={editedItinerary.visitDurationMinutes || visitDurationMinutes}
                       onTimeConstraintsChange={(constraints) => handleTimeConstraintsChange(day.label, constraints)}
                       onStartTimeChange={(time) => handleStartTimeChange(day.label, time)}
