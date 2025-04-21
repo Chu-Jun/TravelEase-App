@@ -23,6 +23,7 @@ import MapDisplay from "@/components/MapDisplay";
 import RouteOptimizationControls from "@/components/RouteOptimizationControls";
 import TimeConstraintsManager from "@/components/TimeConstraintsManager";
 import ScheduleDisplay from "@/components/ScheduleDisplay";
+import RouteOptimizationLoader from "@/components/RouteOptimizationLoader";
 
 const generateDays = (startDate, endDate) => {
   if (!startDate || !endDate) return [];
@@ -852,6 +853,7 @@ const TravelEaseItineraryPage = () => {
           </div>
         </div>
       </div>
+      <RouteOptimizationLoader isVisible={optimizationLoading} />
     </div>
   );
 };
