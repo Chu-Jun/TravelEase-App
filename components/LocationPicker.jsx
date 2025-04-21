@@ -142,11 +142,6 @@ const LocationPicker = ({
                   </button>
                 </div>
               </div>
-              
-              {/* Transport mode indicator - only show when enabled */}
-              {showTransportIndicator && index < places.length - 1 && transportModes[dayLabel]?.travelModes?.[index] && (
-                <TransportModeIndicator transportMode={transportModes[dayLabel].travelModes[index]} />
-              )}
             </React.Fragment>
           );
         })}

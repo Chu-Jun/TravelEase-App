@@ -21,6 +21,9 @@ import html2canvas from "html2canvas";
 import LocationPicker from "@/components/LocationPicker";
 import MapDisplay from "@/components/MapDisplay";
 import RouteOptimizationControls from "@/components/RouteOptimizationControls";
+import TimeConstraintsManager from "@/components/TimeConstraintsManager";
+import ScheduleDisplay from "@/components/ScheduleDisplay";
+import RouteOptimizationLoader from "@/components/RouteOptimizationLoader";
 
 const generateDays = (startDate, endDate) => {
   if (!startDate || !endDate) return [];
@@ -58,6 +61,9 @@ const TravelEaseItineraryPage = () => {
   const [optimizationType, setOptimizationType] = useState("time");
   const [transportMode, setTransportMode] = useState("BOTH");
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [visitDurationMinutes, setVisitDurationMinutes] = useState(60);
+  // New state to track which days have schedules
+  const [daysWithSchedules, setDaysWithSchedules] = useState({});
 
   // Fetch trip and itinerary data
   useEffect(() => {
@@ -118,6 +124,14 @@ const TravelEaseItineraryPage = () => {
           setItinerary(initialItinerary);
           setEditedItinerary(JSON.parse(JSON.stringify(initialItinerary)));
           
+          // Initialize daysWithSchedules state based on fetched data
+          const scheduledDays = {};
+          if (initialItinerary.schedule) {
+            Object.keys(initialItinerary.schedule).forEach(day => {
+              scheduledDays[day] = true;
+            });
+          }
+          setDaysWithSchedules(scheduledDays);
         }
       } catch (err) {
         setError("Error loading trip data: " + err.message);
@@ -355,75 +369,135 @@ const TravelEaseItineraryPage = () => {
   };
 
   // Function to optimize route
-const optimizeRoute = async (day) => {
-  try {
-    setOptimizationLoading(true);
-    
-    // Get markers for the selected day
-    const dayMarkers = editedItinerary.markers[day] || [];
-    
-    if (dayMarkers.length < 2) {
-      setError("Need at least 2 locations to optimize a route");
+  const optimizeRoute = async (day) => {
+    try {
+      setOptimizationLoading(true);
+      
+      // Get markers for the selected day
+      const dayMarkers = editedItinerary.markers[day] || [];
+      
+      if (dayMarkers.length < 2) {
+        setError("Need at least 2 locations to optimize a route");
+        setOptimizationLoading(false);
+        return;
+      }
+      
+      // Find the day object that corresponds to this day label
+      const dayObj = days.find(d => d.label === day);
+      
+      // Format the data for the API
+      const requestData = {
+        locations: dayMarkers.map(marker => ({
+          name: marker.name,
+          lat: marker.coordinate.lat,
+          lng: marker.coordinate.lng
+        })),
+        // Use the custom startTime if available, otherwise generate from the day's date
+        start_time: (editedItinerary.startTimes && editedItinerary.startTimes[day]) ||
+                   (dayObj 
+                     ? `${dayObj.date.toISOString().split('T')[0]}T${new Date().toTimeString().split(' ')[0].slice(0, 5)}` 
+                     // Fallback to current date if nothing else works
+                     : `${new Date().toISOString().split('T')[0]}T${new Date().toTimeString().split(' ')[0].slice(0, 5)}`
+                   ),
+                 
+        location_time_constraints: editedItinerary.timeConstraints?.[day] || [],
+        preferred_mode: transportMode,
+        optimization_type: optimizationType,
+        visit_duration_minutes: editedItinerary.visitDurationMinutes || visitDurationMinutes
+      };
+      
+      // Call the API
+      const response = await fetch('https://striking-joy-452217-j3.df.r.appspot.com/api/optimize-route', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log("Optimization result:", result);
+      
+      // Store the schedule and update the itinerary
+      setEditedItinerary(prev => {
+        const newItinerary = JSON.parse(JSON.stringify(prev));
+        
+        // Create a map of place names to their full place objects
+        const placeMap = {};
+        dayMarkers.forEach((marker, index) => {
+          placeMap[marker.name] = newItinerary.places[day][index];
+        });
+        
+        // Create new arrays in optimized order
+        const optimizedPlaces = result.optimized_sequence.map(name => placeMap[name]);
+        const optimizedMarkers = result.optimized_sequence.map(name => 
+          dayMarkers.find(marker => marker.name === name)
+        );
+  
+        // Store schedule and transportation information
+        newItinerary.schedule = {
+          ...newItinerary.schedule || {},
+          [day]: result.schedule
+        };
+        
+        newItinerary.transportModes = {
+          ...newItinerary.transportModes || {},
+          [day]: {
+            preferredMode: result.preferred_mode,
+            travelModes: result.travel_modes
+          }
+        };
+        
+        newItinerary.summary = {
+          ...newItinerary.summary || {},
+          [day]: result.summary
+        };
+        
+        // Update the itinerary with optimized sequences
+        newItinerary.places[day] = optimizedPlaces;
+        newItinerary.markers[day] = optimizedMarkers;
+        
+        // Mark as changed
+        setHasChanges(prevChanges => ({
+          ...prevChanges,
+          [day]: true
+        }));
+        
+        return newItinerary;
+      });
+
+      // After successful optimization and state update:
+      setDaysWithSchedules(prevState => ({
+        ...prevState,
+        [day]: true  // Set this day as having a schedule
+      }));
+      
+      // Show success message or notification
+      setError(null);
+      
+    } catch (err) {
+      setError("Error optimizing route: " + err.message);
+      console.error("Error optimizing route:", err);
+    } finally {
       setOptimizationLoading(false);
-      return;
     }
-    
-    // Format the data for the API
-    const requestData = {
-      locations: dayMarkers.map(marker => ({
-        name: marker.name,
-        lat: marker.coordinate.lat,
-        lng: marker.coordinate.lng
-      })),
-      preferred_mode: transportMode,
-      optimization_type: optimizationType
-    };
-    
-    // Call the API
-    const response = await fetch('https://striking-joy-452217-j3.df.r.appspot.com/api/optimize-route', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestData)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    console.log("Optimization result:", result);
-    
-    // Reorder places and markers based on optimized sequence
+  };
+
+  const handleTimeConstraintsChange = (day, constraints) => {
     setEditedItinerary(prev => {
       const newItinerary = JSON.parse(JSON.stringify(prev));
       
-      // Create a map of place names to their full place objects
-      const placeMap = {};
-      dayMarkers.forEach((marker, index) => {
-        placeMap[marker.name] = newItinerary.places[day][index];
-      });
+      // Initialize timeConstraints object if it doesn't exist
+      if (!newItinerary.timeConstraints) {
+        newItinerary.timeConstraints = {};
+      }
       
-      // Create new arrays in optimized order
-      const optimizedPlaces = result.optimized_sequence.map(name => placeMap[name]);
-      const optimizedMarkers = result.optimized_sequence.map(name => 
-        dayMarkers.find(marker => marker.name === name)
-      );
-
-      // Add transportation modes to the itinerary
-      newItinerary.transportModes = {
-        [day]: {
-          preferredMode: result.preferred_mode,
-          travelModes: result.travel_modes
-        }
-      };
-      
-      // Update the itinerary with optimized sequences
-      newItinerary.places[day] = optimizedPlaces;
-      newItinerary.markers[day] = optimizedMarkers;
-
-      console.log("New Itinerary: ",newItinerary);
+      // Update constraints for this day
+      newItinerary.timeConstraints[day] = constraints;
       
       // Mark as changed
       setHasChanges(prevChanges => ({
@@ -433,120 +507,146 @@ const optimizeRoute = async (day) => {
       
       return newItinerary;
     });
-    
-    // Show success message or notification
-    setError(null); // Clear any previous errors
-    
-  } catch (err) {
-    setError("Error optimizing route: " + err.message);
-    console.error("Error optimizing route:", err);
-  } finally {
-    setOptimizationLoading(false);
-  }
-};
+  };
 
-const downloadItineraryPDF = async () => {
-  // Show loading state using the correct state function
-  setPdfLoading(true);
-  
-  try {
-    // Create a new jsPDF instance
-    const pdf = new jsPDF("p", "mm", "a4");
-    let position = 15; // Starting position for content
+  // Add this function to handle start time changes
+  const handleStartTimeChange = (day, startTime) => {
+    console.log("Setting start time for day:", day, "to:", startTime); // Add logging
     
-    // Add title
-    pdf.setFontSize(20);
-    pdf.text(`Itinerary for ${trip.tripname}`, 105, position, { align: "center" });
-    position += 15;
-    
-    // Add trip details
-    pdf.setFontSize(12);
-    const tripDateRange = `${new Date(trip.tripstartdate).toLocaleDateString()} - ${new Date(trip.tripenddate).toLocaleDateString()}`;
-    pdf.text(`Trip Dates: ${tripDateRange}`, 105, position, { align: "center" });
-    position += 15;
-    
-    // Process each day
-    for (const day of days) {
-      // Check if we need a new page
-      if (position > 270) {
-        pdf.addPage();
-        position = 15;
+    setEditedItinerary(prev => {
+      const newItinerary = JSON.parse(JSON.stringify(prev));
+      
+      // Initialize startTimes object if it doesn't exist
+      if (!newItinerary.startTimes) {
+        newItinerary.startTimes = {};
       }
       
-      // Add day header
-      pdf.setFontSize(16);
-      pdf.setFont(undefined, "bold");
-      const dayTitle = `${day.label} - ${day.date.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-      })}`;
-      pdf.text(dayTitle, 15, position);
-      position += 10;
+      // Update start time for this day
+      newItinerary.startTimes[day] = startTime;
       
-      // Add places for this day
+      // Mark as changed
+      setHasChanges(prevChanges => ({
+        ...prevChanges,
+        [day]: true
+      }));
+      
+      return newItinerary;
+    });
+  };
+
+  // Add this function to handle visit duration changes
+  const handleVisitDurationChange = (duration) => {
+    setVisitDurationMinutes(duration);
+    
+    setEditedItinerary(prev => {
+      const newItinerary = JSON.parse(JSON.stringify(prev));
+      newItinerary.visitDurationMinutes = duration;
+      return newItinerary;
+    });
+  };
+
+  const downloadItineraryPDF = async () => {
+    // Show loading state using the correct state function
+    setPdfLoading(true);
+    
+    try {
+      // Create a new jsPDF instance
+      const pdf = new jsPDF("p", "mm", "a4");
+      let position = 15; // Starting position for content
+      
+      // Add title
+      pdf.setFontSize(20);
+      pdf.text(`Itinerary for ${trip.tripname}`, 105, position, { align: "center" });
+      position += 15;
+      
+      // Add trip details
       pdf.setFontSize(12);
-      pdf.setFont(undefined, "normal");
+      const tripDateRange = `${new Date(trip.tripstartdate).toLocaleDateString()} - ${new Date(trip.tripenddate).toLocaleDateString()}`;
+      pdf.text(`Trip Dates: ${tripDateRange}`, 105, position, { align: "center" });
+      position += 15;
       
-      const dayPlaces = editedItinerary.places[day.label] || [];
-      
-      if (dayPlaces.length === 0 || (dayPlaces.length === 1 && (!dayPlaces[0] || !dayPlaces[0].name))) {
-        pdf.text("No places added for this day", 20, position);
-        position += 8;
-      } else {
-        for (let i = 0; i < dayPlaces.length; i++) {
-          const place = dayPlaces[i];
-          
-          // Check if we need a new page
-          if (position > 270) {
-            pdf.addPage();
-            position = 15;
-          }
-          
-          if (place && place.name) {
-            // Add place number and name
-            pdf.setFont(undefined, "bold");
-            pdf.text(`${i + 1}. ${place.name}`, 20, position);
-            position += 6;
+      // Process each day
+      for (const day of days) {
+        // Check if we need a new page
+        if (position > 270) {
+          pdf.addPage();
+          position = 15;
+        }
+        
+        // Add day header
+        pdf.setFontSize(16);
+        pdf.setFont(undefined, "bold");
+        const dayTitle = `${day.label} - ${day.date.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}`;
+        pdf.text(dayTitle, 15, position);
+        position += 10;
+        
+        // Add places for this day
+        pdf.setFontSize(12);
+        pdf.setFont(undefined, "normal");
+        
+        const dayPlaces = editedItinerary.places[day.label] || [];
+        
+        if (dayPlaces.length === 0 || (dayPlaces.length === 1 && (!dayPlaces[0] || !dayPlaces[0].name))) {
+          pdf.text("No places added for this day", 20, position);
+          position += 8;
+        } else {
+          for (let i = 0; i < dayPlaces.length; i++) {
+            const place = dayPlaces[i];
             
-            // Add place address if available
-            if (place.formattedAddress) {
-              pdf.setFont(undefined, "normal");
-              pdf.text(place.formattedAddress, 25, position);
-              position += 6;
+            // Check if we need a new page
+            if (position > 270) {
+              pdf.addPage();
+              position = 15;
             }
             
-            // Add transportation mode if available
-            if (editedItinerary.transportModes && 
-                editedItinerary.transportModes[day.label] && 
-                editedItinerary.transportModes[day.label].travelModes && 
-                i < editedItinerary.transportModes[day.label].travelModes.length) {
-              const mode = editedItinerary.transportModes[day.label].travelModes[i];
-              if (mode) {
-                pdf.setFont(undefined, "italic");
-                pdf.text(`Transportation: ${mode}`, 25, position);
-                position += 8;
+            if (place && place.name) {
+              // Add place number and name
+              pdf.setFont(undefined, "bold");
+              pdf.text(`${i + 1}. ${place.name}`, 20, position);
+              position += 6;
+              
+              // Add place address if available
+              if (place.formattedAddress) {
+                pdf.setFont(undefined, "normal");
+                pdf.text(place.formattedAddress, 25, position);
+                position += 6;
               }
-            } else {
-              position += 2;
+              
+              // Add transportation mode if available
+              if (editedItinerary.transportModes && 
+                  editedItinerary.transportModes[day.label] && 
+                  editedItinerary.transportModes[day.label].travelModes && 
+                  i < editedItinerary.transportModes[day.label].travelModes.length) {
+                const mode = editedItinerary.transportModes[day.label].travelModes[i];
+                if (mode) {
+                  pdf.setFont(undefined, "italic");
+                  pdf.text(`Transportation: ${mode}`, 25, position);
+                  position += 8;
+                }
+              } else {
+                position += 2;
+              }
             }
           }
         }
+        
+        position += 10; // Add space between days
       }
       
-      position += 10; // Add space between days
+      // Save the PDF
+      pdf.save(`${trip.tripname}-itinerary.pdf`);
+      
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+      setError("Error generating PDF. Please try again.");
+    } finally {
+      setPdfLoading(false);
     }
-    
-    // Save the PDF
-    pdf.save(`${trip.tripname}-itinerary.pdf`);
-    
-  } catch (err) {
-    console.error("Error generating PDF:", err);
-    setError("Error generating PDF. Please try again.");
-  } finally {
-    setPdfLoading(false);
-  }
-};
+  };
 
   // Render loading state
   if (loading) {
@@ -652,17 +752,69 @@ const downloadItineraryPDF = async () => {
                   />
                 </h3>
                 {!collapsedSections[day.label] && (
-                <div className="mt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-medium">Places to Visit</h4>
-                    <div className="flex items-center gap-2">
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-medium">Places to Visit</h4>
+                    </div>
+                    
+                    {/* Time Constraints Manager */}
+                    <TimeConstraintsManager
+                      dayLabel={day.label}
+                      locations={(editedItinerary.markers && editedItinerary.markers[day.label]) || []}
+                      timeConstraints={(editedItinerary.timeConstraints && editedItinerary.timeConstraints[day.label]) || []}
+                      startTime={
+                        (editedItinerary.startTimes && editedItinerary.startTimes[day.label]) ||
+                        `${day.date.toISOString().split('T')[0]}T${new Date().toTimeString().split(' ')[0].slice(0, 5)}`
+                      }
+                      visitDuration={editedItinerary.visitDurationMinutes || visitDurationMinutes}
+                      onTimeConstraintsChange={(constraints) => handleTimeConstraintsChange(day.label, constraints)}
+                      onStartTimeChange={(time) => handleStartTimeChange(day.label, time)}
+                      onVisitDurationChange={handleVisitDurationChange}
+                    />
+                    
+                    <div className="w-full sm:max-w-md lg:max-w-lg overflow-hidden">
+                      <RouteOptimizationControls 
+                        dayLabel={day.label}
+                        onOptimize={optimizeRoute}
+                        loading={optimizationLoading}
+                        optimizationType={optimizationType}
+                        setOptimizationType={setOptimizationType}
+                        transportMode={transportMode}
+                        setTransportMode={setTransportMode}
+                      />
+                    </div>
+                    
+                    <LocationPicker
+                      places={(editedItinerary.places && editedItinerary.places[day.label]) || [""]}
+                      onPlacesChange={handlePlacesChange}
+                      dayLabel={day.label}
+                      onMoveUp={moveUp}
+                      onMoveDown={moveDown}
+                      onRemovePlace={removePlace}
+                      onAddPlace={addPlace}
+                      transportModes={editedItinerary.transportModes || {}}
+                    />
+
+                    <div className="mt-6 flex flex-col lg:flex-row justify-end items-end gap-4">
+                      {/* Schedule Display - Only show after optimization */}
+                      {(daysWithSchedules[day.label] || 
+                        (editedItinerary.schedule && editedItinerary.schedule[day.label])) && (
+                        <div className="w-full lg:w-auto">
+                          <ScheduleDisplay 
+                            schedule={editedItinerary.schedule?.[day.label]}
+                            summary={editedItinerary.summary?.[day.label]}
+                          />
+                        </div>
+                      )}
+
+                      {/* Save Changes Button */}
                       {hasChanges[day.label] && (
                         <button 
                           onClick={() => saveChanges(day.label)}
                           disabled={savingDay === day.label}
                           className={`${
                             savingDay === day.label ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'
-                          } text-white px-3 py-1 rounded-md flex items-center gap-1 text-sm transition-colors`}
+                          } text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors`}
                         >
                           <FontAwesomeIcon icon={faSave} />
                           {savingDay === day.label ? 'Saving...' : 'Save Changes'}
@@ -670,30 +822,7 @@ const downloadItineraryPDF = async () => {
                       )}
                     </div>
                   </div>
-                  <div className="w-full sm:max-w-md lg:max-w-lg overflow-hidden">
-                    <RouteOptimizationControls 
-                      dayLabel={day.label}
-                      onOptimize={optimizeRoute}
-                      loading={optimizationLoading}
-                      optimizationType={optimizationType}
-                      setOptimizationType={setOptimizationType}
-                      transportMode={transportMode}
-                      setTransportMode={setTransportMode}
-                    />
-                  </div>
-                  
-                  <LocationPicker
-                    places={(editedItinerary.places && editedItinerary.places[day.label]) || [""]}
-                    onPlacesChange={handlePlacesChange}
-                    dayLabel={day.label}
-                    onMoveUp={moveUp}
-                    onMoveDown={moveDown}
-                    onRemovePlace={removePlace}
-                    onAddPlace={addPlace}
-                    transportModes={editedItinerary.transportModes || {}}
-                  />
-                </div>
-              )}
+                )}
               </div>
             ))}
           </div>
@@ -704,6 +833,7 @@ const downloadItineraryPDF = async () => {
             ${mobileMapVisible ? 'block' : 'hidden'} md:block
             ${mobileMapVisible ? 'h-80' : 'h-0'} md:h-screen
             transition-all duration-300
+            md:right-0 md:fixed max-h-[80%] max-w-[39%]
           `}>
             <div className="border rounded-lg h-full overflow-hidden shadow-sm">
               <MapDisplay
@@ -723,6 +853,7 @@ const downloadItineraryPDF = async () => {
           </div>
         </div>
       </div>
+      <RouteOptimizationLoader isVisible={optimizationLoading} />
     </div>
   );
 };
