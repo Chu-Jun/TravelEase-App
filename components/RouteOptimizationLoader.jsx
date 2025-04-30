@@ -42,7 +42,6 @@ const RouteOptimizationLoader = ({ isVisible }) => {
         <div className="text-5xl text-blue-500 mb-6 animate-pulse">
           <FontAwesomeIcon icon={icons[currentIcon].icon} />
         </div>
-        <h3 className="text-xl font-semibold mb-2">Optimizing Your Route</h3>
         <p className="text-gray-600 mb-4">{icons[currentIcon].text}</p>
         <div className="flex justify-center space-x-2">
           <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }}></div>

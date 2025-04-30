@@ -795,7 +795,7 @@ const TravelEaseItineraryPage = () => {
                       transportModes={editedItinerary.transportModes || {}}
                     />
 
-                    <div className="mt-6 flex flex-col lg:flex-row justify-end items-end gap-4">
+                    <div className="mt-1 flex flex-col lg:flex-row justify-end items-end gap-4">
                       {/* Schedule Display - Only show after optimization */}
                       {(daysWithSchedules[day.label] || 
                         (editedItinerary.schedule && editedItinerary.schedule[day.label])) && (
@@ -833,7 +833,7 @@ const TravelEaseItineraryPage = () => {
             ${mobileMapVisible ? 'block' : 'hidden'} md:block
             ${mobileMapVisible ? 'h-80' : 'h-0'} md:h-screen
             transition-all duration-300
-            md:right-0 md:fixed max-h-[80%] max-w-[39%]
+            md:right-0 md:fixed md:max-h-[80%] md:max-w-[39%]
           `}>
             <div className="border rounded-lg h-full overflow-hidden shadow-sm">
               <MapDisplay
