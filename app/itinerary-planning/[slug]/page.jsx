@@ -326,6 +326,7 @@ const TravelEaseItineraryPage = () => {
   // Function to save changes to database
   const saveChanges = async (day) => {
     try {
+      console.log(editedItinerary);
       setSavingDay(day);
       setError(null);
       
@@ -545,26 +546,36 @@ const TravelEaseItineraryPage = () => {
     });
   };
 
+  const generateGoogleMapsURL = (locations) => {
+    if (!locations || locations.length < 2) return "";
+  
+    const origin = encodeURIComponent(locations[0]);
+    const destination = encodeURIComponent(locations[locations.length - 1]);
+    const waypoints = locations.slice(1, -1).map(loc => encodeURIComponent(loc)).join('|');
+  
+    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}`;
+  };
+
   const downloadItineraryPDF = async () => {
     // Show loading state using the correct state function
     setPdfLoading(true);
-    
+   
     try {
       // Create a new jsPDF instance
       const pdf = new jsPDF("p", "mm", "a4");
       let position = 15; // Starting position for content
-      
+     
       // Add title
       pdf.setFontSize(20);
       pdf.text(`Itinerary for ${trip.tripname}`, 105, position, { align: "center" });
       position += 15;
-      
+     
       // Add trip details
       pdf.setFontSize(12);
       const tripDateRange = `${new Date(trip.tripstartdate).toLocaleDateString()} - ${new Date(trip.tripenddate).toLocaleDateString()}`;
       pdf.text(`Trip Dates: ${tripDateRange}`, 105, position, { align: "center" });
       position += 15;
-      
+     
       // Process each day
       for (const day of days) {
         // Check if we need a new page
@@ -572,7 +583,7 @@ const TravelEaseItineraryPage = () => {
           pdf.addPage();
           position = 15;
         }
-        
+       
         // Add day header
         pdf.setFontSize(16);
         pdf.setFont(undefined, "bold");
@@ -584,31 +595,84 @@ const TravelEaseItineraryPage = () => {
         pdf.text(dayTitle, 15, position);
         position += 10;
         
-        // Add places for this day
+        // Add day summary if available
+        if (editedItinerary.summary && editedItinerary.summary[day.label]) {
+          const summary = editedItinerary.summary[day.label];
+          pdf.setFontSize(10);
+          pdf.setFont(undefined, "italic");
+          if (summary.total_distance_km) {
+            pdf.text(`Total distance: ${summary.total_distance_km} km`, 15, position);
+            position += 5;
+          }
+          if (summary.total_itinerary_time) {
+            pdf.text(`Total time: ${summary.total_itinerary_time}`, 15, position);
+            position += 5;
+          }
+          if (summary.total_travel_time) {
+            pdf.text(`Travel time: ${summary.total_travel_time}`, 15, position);
+            position += 8;
+          }
+        }
+        
+        // Add places with schedule for this day
         pdf.setFontSize(12);
         pdf.setFont(undefined, "normal");
-        
+       
         const dayPlaces = editedItinerary.places[day.label] || [];
+        const daySchedule = editedItinerary.schedule && editedItinerary.schedule[day.label] ? 
+                            editedItinerary.schedule[day.label] : [];
         
+        // Generate Google Maps link for the day's itinerary
+        if (dayPlaces.length > 0) {
+          const locationNames = dayPlaces.map(place => place.name).filter(name => !!name);
+          if (locationNames.length > 1) {
+            const mapsURL = generateGoogleMapsURL(locationNames);
+            if (mapsURL) {
+              pdf.setFontSize(10);
+              pdf.setTextColor(0, 0, 255);
+              pdf.setFont(undefined, "normal");
+              pdf.textWithLink("View route on Google Maps", 15, position, { url: mapsURL });
+              pdf.setTextColor(0, 0, 0);
+              position += 8;
+            }
+          }
+        }
+       
         if (dayPlaces.length === 0 || (dayPlaces.length === 1 && (!dayPlaces[0] || !dayPlaces[0].name))) {
           pdf.text("No places added for this day", 20, position);
           position += 8;
         } else {
           for (let i = 0; i < dayPlaces.length; i++) {
             const place = dayPlaces[i];
-            
+            const scheduleItem = daySchedule.find(item => item.location === place.name);
+           
             // Check if we need a new page
             if (position > 270) {
               pdf.addPage();
               position = 15;
             }
-            
+           
             if (place && place.name) {
               // Add place number and name
               pdf.setFont(undefined, "bold");
               pdf.text(`${i + 1}. ${place.name}`, 20, position);
               position += 6;
-              
+             
+              // Add schedule information if available
+              if (scheduleItem) {
+                pdf.setFont(undefined, "normal");
+                pdf.text(`Time: ${scheduleItem.arrival_time} - ${scheduleItem.departure_time}`, 25, position);
+                position += 6;
+                
+                // Add travel information if available
+                if (scheduleItem.travel_from_previous) {
+                  const travel = scheduleItem.travel_from_previous;
+                  pdf.setFont(undefined, "italic");
+                  pdf.text(`Travel from previous: ${travel.duration} (${travel.distance_km} km) by ${travel.mode}`, 25, position);
+                  position += 6;
+                }
+              }
+             
               // Add place address if available
               if (place.formattedAddress) {
                 pdf.setFont(undefined, "normal");
@@ -616,16 +680,29 @@ const TravelEaseItineraryPage = () => {
                 position += 6;
               }
               
+              // Add Google Maps link for individual location
+              if (place.placeId) {
+                pdf.setTextColor(0, 0, 255);
+                pdf.setFontSize(9);
+                const locationMapUrl = `https://www.google.com/maps/place/?q=place_id:${place.placeId}`;
+                pdf.textWithLink("View on Google Maps", 25, position, { url: locationMapUrl });
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFontSize(12);
+                position += 6;
+              }
+             
               // Add transportation mode if available
-              if (editedItinerary.transportModes && 
-                  editedItinerary.transportModes[day.label] && 
-                  editedItinerary.transportModes[day.label].travelModes && 
+              if (editedItinerary.transportModes &&
+                  editedItinerary.transportModes[day.label] &&
+                  editedItinerary.transportModes[day.label].travelModes &&
                   i < editedItinerary.transportModes[day.label].travelModes.length) {
                 const mode = editedItinerary.transportModes[day.label].travelModes[i];
-                if (mode) {
+                if (mode && !scheduleItem?.travel_from_previous) { // Only add if not already added from schedule
                   pdf.setFont(undefined, "italic");
                   pdf.text(`Transportation: ${mode}`, 25, position);
                   position += 8;
+                } else {
+                  position += 2;
                 }
               } else {
                 position += 2;
@@ -633,13 +710,13 @@ const TravelEaseItineraryPage = () => {
             }
           }
         }
-        
+       
         position += 10; // Add space between days
       }
-      
+     
       // Save the PDF
       pdf.save(`${trip.tripname}-itinerary.pdf`);
-      
+     
     } catch (err) {
       console.error("Error generating PDF:", err);
       setError("Error generating PDF. Please try again.");
@@ -795,7 +872,7 @@ const TravelEaseItineraryPage = () => {
                       transportModes={editedItinerary.transportModes || {}}
                     />
 
-                    <div className="mt-6 flex flex-col lg:flex-row justify-end items-end gap-4">
+                    <div className="mt-1 flex flex-col lg:flex-row justify-end items-end gap-4">
                       {/* Schedule Display - Only show after optimization */}
                       {(daysWithSchedules[day.label] || 
                         (editedItinerary.schedule && editedItinerary.schedule[day.label])) && (
@@ -833,7 +910,7 @@ const TravelEaseItineraryPage = () => {
             ${mobileMapVisible ? 'block' : 'hidden'} md:block
             ${mobileMapVisible ? 'h-80' : 'h-0'} md:h-screen
             transition-all duration-300
-            md:right-0 md:fixed max-h-[80%] max-w-[39%]
+            md:right-0 md:fixed md:max-h-[80%] md:max-w-[39%]
           `}>
             <div className="border rounded-lg h-full overflow-hidden shadow-sm">
               <MapDisplay
