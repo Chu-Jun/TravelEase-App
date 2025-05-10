@@ -29,14 +29,21 @@ const formSchema = z.object({
     password: z.string().min(8, {
         message: "Password must be at least 8 characters."
     }),
+    confirmPassword: z.string().min(1, {
+        message: "Confirm password is required."
+    }),
     policyAgreement: z.literal(true, {
-        errorMap: () => ({ message: "You must agree to the Terms and Privacy Policy." })
+        errorMap: () => ({ message: "You must agree to the Terms & Conditions and Privacy Policy." })
     })
-})
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+});
 
 export default function Signup() {
 
   const [passwordVisibility, setPasswordVisibility] = useState(false);
+  const [confirmPasswordVisibility, setConfirmPasswordVisibility] = useState(false);
 
   const { toast } = useToast()
 
@@ -44,6 +51,7 @@ export default function Signup() {
     email: string;
     username: string;
     password: string;
+    confirmPassword: string;
     policyAgreement: true;
   }
 
@@ -53,6 +61,7 @@ export default function Signup() {
         email: "",
         username: "",
         password: "",
+        confirmPassword: "",
         policyAgreement: true
       },
   })
@@ -126,6 +135,34 @@ export default function Signup() {
                                             onClick={() => setPasswordVisibility(!passwordVisibility)}
                                         >
                                             {createElement(passwordVisibility ? EyeOffIcon : EyeIcon , {
+                                            className: "h-6 w-6",
+                                            })}
+                                        </Box>
+                                    </Box>
+                                </FormControl>
+                                <FormMessage/>
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Confirm Password</FormLabel>
+                                <FormControl>
+                                    <Box className="relative">
+                                        <Input
+                                            {...field}
+                                            type={confirmPasswordVisibility ? "text" : "password"}
+                                            autoComplete="on"
+                                            placeholder=""
+                                        />
+                                        <Box
+                                            className="absolute inset-y-0 right-0 flex cursor-pointer items-center p-3 text-muted-foreground"
+                                            onClick={() => setConfirmPasswordVisibility(!confirmPasswordVisibility)}
+                                        >
+                                            {createElement(confirmPasswordVisibility ? EyeOffIcon : EyeIcon , {
                                             className: "h-6 w-6",
                                             })}
                                         </Box>
