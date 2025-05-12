@@ -24,7 +24,7 @@ export default function ExpenseDeletionDialog({expenseData, open, onOpenChange}:
             if (result.status === "success") {
                 toast({
                     title: "Success",
-                    description: "Trip deleted successfully",
+                    description: "Expense record deleted successfully",
                 })
                 window.location.reload();
                 onOpenChange(false);

@@ -144,6 +144,7 @@ export default function ExpenseCreationDialog({tripData}: any) {
                                             <SelectItem value="FnB">Food & Beverage</SelectItem>
                                             <SelectItem value="Accommodation">Accommodation</SelectItem>
                                             <SelectItem value="Transportation">Transportation</SelectItem>
+                                            <SelectItem value="Shopping">Shopping</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

@@ -147,10 +147,11 @@ export default function ExpenseEditDialog({expenseData, open, onOpenChange}: any
                                                 <SelectValue placeholder="Select Category" />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent className="bg-white text-primary">
+                                        <SelectContent className="bg-white text-title">
                                             <SelectItem value="FnB">Food & Beverage</SelectItem>
                                             <SelectItem value="Accommodation">Accommodation</SelectItem>
                                             <SelectItem value="Transportation">Transportation</SelectItem>
+                                            <SelectItem value="Shopping">Shopping</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
