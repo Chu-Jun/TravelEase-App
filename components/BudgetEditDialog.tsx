@@ -49,9 +49,9 @@ export default function BudgetEditDialog({tripData, open, onOpenChange}: any) {
         const message = result.message;
 
         if (status === "success") {
-            window.location.reload();
-            onOpenChange(false); // Close dialog on successful submission
+            router.push(`/expense-tracking/${tripData.tripid}`);
             router.refresh();
+            onOpenChange(false); // Close dialog on successful submission
         } else {
             console.error("Error:", message);
         }

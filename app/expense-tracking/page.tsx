@@ -16,6 +16,7 @@ import ExpenseCreationDialog from "@/components/ExpenseCreationDialog";
 import ExpenseRecordCard from "@/components/ExpenseRecordCard";
 import ExpensePieChart from "@/components/ExpensePieChart";
 import ExpenseBarChart from "@/components/ExpenseBarChart";
+import TopSpendingTable from "@/components/TopSpendingTable";
 import { format, isToday, isYesterday } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -79,7 +80,7 @@ const ExpenseTrackingPage: React.FC = () => {
 
           const tempBalance = parseFloat(selectedTrip.budget) - tempTotalExpenses;
           setBalance(tempBalance);
-          setTotalExpense(tempTotalExpenses);
+          setTotalExpense(parseFloat(tempTotalExpenses.toFixed(2)));
         } catch (error) {
           console.error("Error fetching expenses:", error);
         }
@@ -213,19 +214,12 @@ const ExpenseTrackingPage: React.FC = () => {
           {expenses.length > 0 ? (
             <div className="space-y-6">
               {/* Pie Chart */}
-              <div className="bg-white p-4 pt-1 rounded-lg shadow">
-                <div className="h-64">
-                  <ExpensePieChart expenses={expenses} />
-                </div>
-              </div>
-              
+              <ExpensePieChart expenses={expenses} />
+
               {/* Bar Chart */}
-              <div className="bg-white p-4 rounded-lg shadow mt-6">
-                <h3 className="text-lg font-medium mb-2">Daily Expenses</h3>
-                <div className="h-64">
-                  <ExpenseBarChart expenses={expenses} totalExpense={totalExpense} />
-                </div>
-              </div>
+              <ExpenseBarChart expenses={expenses} totalExpense={totalExpense} />
+
+              <TopSpendingTable expenses={expenses} />
             </div>
           ) : (
             <div className="bg-white p-6 rounded-lg shadow text-center">
@@ -342,21 +336,27 @@ const ExpenseTrackingPage: React.FC = () => {
 
       {/* Right section for expense tracking */}
       {selectedTrip && (
-        <div className="w-3/4 p-4">
-          <h2 className="text-3xl font-bold mb-6">Expense Tracking for {selectedTrip.tripname}</h2>
-          
+        <div className="w-3/4 p-6 space-y-6">
+          <h2 className="text-2xl font-bold mb-4">Expense Tracking for {selectedTrip?.tripname}</h2>
+
           {expenses.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Pie Chart */}
-              <div className="p-4 bg-white rounded-lg shadow">
-                <ExpensePieChart expenses={expenses} />
+            <>
+              {/* First row: Pie Chart + Top Spending Table side-by-side on md+, stacked on mobile */}
+              <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
+                <div className="md:w-1/2 min-h-full">
+                  <ExpensePieChart expenses={expenses} />
+                </div>
+
+                <div className="md:w-1/2 min-h-full">
+                  <TopSpendingTable expenses={expenses} />
+                </div>
               </div>
-              
-              {/* Bar Chart */}
-              <div className="p-4 bg-white rounded-lg shadow">
+
+              {/* Second row: Bar chart full-width */}
+              <div className="md:w-full">
                 <ExpenseBarChart expenses={expenses} totalExpense={totalExpense} />
               </div>
-            </div>
+            </>
           ) : (
             <div className="bg-white p-6 rounded-lg shadow text-center">
               <p className="text-lg text-gray-600">

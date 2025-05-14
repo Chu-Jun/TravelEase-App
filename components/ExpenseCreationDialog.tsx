@@ -55,9 +55,9 @@ export default function ExpenseCreationDialog({tripData}: any) {
         const message = result.message;
 
         if (status === "success") {
+            router.push(`/expense-tracking/${tripData.tripid}`);
+            router.refresh();
             setOpen(false); // Close dialog on successful submission
-            router.push("/expense-tracking");
-            window.location.reload();
         } else {
             console.error("Error:", message);
         }

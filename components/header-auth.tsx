@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; // Import usePathname hook
 import { faUser, faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import LogoutButton from './LogoutButton';
@@ -32,6 +33,7 @@ export default function AuthButton() {
   const { isAuth } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [profileLink, setProfileLink] = useState("/profile");
+  const pathname = usePathname(); // Get current path
 
   // Navigation links array to reuse in both desktop and mobile views
   const navLinks: NavLink[] = [
@@ -70,99 +72,111 @@ export default function AuthButton() {
     loadUserData();
   }, []);
 
-  // Client component for user menu dropdown
-function UserMenu({ profileLink }: { profileLink: string }) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <FontAwesomeIcon icon={faUser} size="xl" style={{ width: "24px", height: "24px" }} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {isAuth ? (
-          <>
-            <DropdownMenuItem>
-              <Link href={profileLink} className="w-full">View Profile</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <LogoutButton />
-            </DropdownMenuItem>
-          </>
-        ) : (
-          <>
-            <DropdownMenuItem>
-              <Link href="/sign-in" className="w-full">Sign in</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link href="/sign-up" className="w-full">Sign up</Link>
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
+  // Helper function to determine if a link is active
+  const isActiveLink = (href: string): boolean => {
+    if (href === "/" && pathname === "/") {
+      return true;
+    }
+    return href !== "/" && pathname.startsWith(href);
+  };
 
-// Client component for mobile navigation
-function MobileNavigation({ 
-  navLinks, 
-  profileLink 
-}: { 
-  navLinks: NavLink[]; 
-  profileLink: string 
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="p-2">
-        <FontAwesomeIcon icon={faBars} size="xl" style={{ width: "24px", height: "24px" }} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Navigation</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        
-        {/* Navigation Links */}
-        {navLinks.map((link: NavLink) => (
-          <DropdownMenuItem key={link.href}>
-            <Link href={link.href} className="w-full">
-              {link.label}
-            </Link>
-          </DropdownMenuItem>
-        ))}
-        
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel>Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        
-        {/* User Account Options */}
-        {isAuth ? (
-          <>
-            <DropdownMenuItem>
-              <Link href={profileLink} className="w-full">View Profile</Link>
+  // Client component for user menu dropdown
+  function UserMenu({ profileLink }: { profileLink: string }) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <FontAwesomeIcon icon={faUser} size="xl" style={{ width: "24px", height: "24px" }} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {isAuth ? (
+            <>
+              <DropdownMenuItem className={pathname === profileLink ? "text-gray-500" : ""}>
+                <Link href={profileLink} className="w-full">View Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <LogoutButton />
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <>
+              <DropdownMenuItem className={pathname === "/sign-in" ? "text-gray-500" : ""}>
+                <Link href="/sign-in" className="w-full">Sign in</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className={pathname === "/sign-up" ? "text-gray-500" : ""}>
+                <Link href="/sign-up" className="w-full">Sign up</Link>
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  // Client component for mobile navigation
+  function MobileNavigation({ 
+    navLinks, 
+    profileLink 
+  }: { 
+    navLinks: NavLink[]; 
+    profileLink: string 
+  }) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger className="p-2">
+          <FontAwesomeIcon icon={faBars} size="xl" style={{ width: "24px", height: "24px" }} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          
+          {/* Navigation Links with active highlighting */}
+          {navLinks.map((link: NavLink) => (
+            <DropdownMenuItem key={link.href} className={isActiveLink(link.href) ? "text-gray-500" : ""}>
+              <Link href={link.href} className="w-full">
+                {link.label}
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <LogoutButton />
-            </DropdownMenuItem>
-          </>
-        ) : (
-          <>
-            <DropdownMenuItem>
-              <Link href="/sign-in" className="w-full">Sign in</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link href="/sign-up" className="w-full">Sign up</Link>
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
+          ))}
+          
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>Account</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          
+          {/* User Account Options with active highlighting */}
+          {isAuth ? (
+            <>
+              <DropdownMenuItem className={pathname === profileLink ? "text-gray-500" : ""}>
+                <Link href={profileLink} className="w-full">View Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <LogoutButton />
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <>
+              <DropdownMenuItem className={pathname === "/sign-in" ? "text-gray-500" : ""}>
+                <Link href="/sign-in" className="w-full">Sign in</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className={pathname === "/sign-up" ? "text-gray-500" : ""}>
+                <Link href="/sign-up" className="w-full">Sign up</Link>
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
 
   return (
     <div className="w-full flex justify-end items-center">
-      {/* Desktop Navigation - Now right-aligned */}
+      {/* Desktop Navigation - Now right-aligned with active highlighting */}
       <div className="hidden md:flex items-center gap-10">
         {navLinks.map((link: NavLink) => (
-          <Link key={link.href} href={link.href} className="font-semibold">
+          <Link 
+            key={link.href} 
+            href={link.href} 
+            className={`font-semibold transition-colors hover:pointer ${isActiveLink(link.href) ? "text-gray-500" : "hover:text-gray-500"}`}
+          >
             {link.label}
           </Link>
         ))}
@@ -176,6 +190,3 @@ function MobileNavigation({
     </div>
   );
 }
-
-
-

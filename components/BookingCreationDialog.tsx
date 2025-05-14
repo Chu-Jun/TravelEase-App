@@ -114,8 +114,7 @@ export default function BookingCreationDialog({ tripData }: any) {
 
     if (result.status === "success") {
       setOpen(false);
-      router.push("/booking-management");
-      window.location.reload();
+      router.push(`/booking-management/${tripData.tripid}`);
     } else {
       console.error("Error:", result.message);
     }

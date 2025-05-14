@@ -4,7 +4,7 @@ const RouteOptimizationControls = ({ dayLabel, onOptimize, loading, optimization
     <div className="flex flex-col space-y-3 md:space-y-0 md:flex-row md:items-center md:space-x-3 mb-4 w-full">
       {/* Optimize By section */}
       <div className="flex flex-wrap items-center">
-        <label htmlFor="optimizeType" className="font-medium text-sm mr-2 mb-1 md:mb-0 mb-1">
+        <label htmlFor="optimizeType" className="font-medium text-sm mr-2 mb-1 md:mb-0">
           Optimize By:
         </label>
         <select 

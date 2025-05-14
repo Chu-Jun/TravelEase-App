@@ -1462,7 +1462,7 @@ export const editFlightBookingAction = async (formData: any) => {
       departairport: departairport,
       arriveairport: arriveairport,
       departtime: departtime,
-      arrivaltime: arrivaltime,
+      arrivaltime: arrivaltime || undefined,
     }).eq("flightbookingid", formData.id);
 
   if (error) {

@@ -62,8 +62,8 @@ export default function ExpenseEditDialog({expenseData, open, onOpenChange}: any
         const message = result.message;
 
         if (status === "success") {
+            router.push(`/expense-tracking/${expenseData.tripid}`);
             onOpenChange(false); // Close dialog on successful submission
-            router.push("/expense-tracking");
             window.location.reload();
         } else {
             console.error("Error:", message);

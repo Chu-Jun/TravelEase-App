@@ -1,28 +1,28 @@
-"use client";
 import React, { useEffect, useState } from "react";
-import { useCallback } from "react";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart";
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-// Define expense type
 interface Expense {
   expensesrecordid?: string;
   tripid?: string;
@@ -37,83 +37,102 @@ interface ExpenseBarChartProps {
   totalExpense: number;
 }
 
+// Map category codes to user-friendly labels
+const categoryLabelsMap: Record<string, string> = {
+  "fnb": "Food & Beverage",
+  "transportation": "Transportation",
+  "accommodation": "Accommodation",
+  "shopping": "Shopping",
+  "activities": "Activities",
+};
+
+// Color mapping for categories
+const categoryColors: Record<string, string> = {
+  "fnb": "hsl(var(--chart-1))",
+  "transportation": "hsl(var(--chart-5))",
+  "accommodation": "hsl(var(--chart-3))",
+  "shopping": "hsl(var(--chart-4))",
+  "activities": "hsl(var(--chart-5))",
+};
+
 const ExpenseBarChart: React.FC<ExpenseBarChartProps> = ({ expenses, totalExpense }) => {
-  const [barChartData, setBarChartData] = useState<any>(null);
+  const [barChartData, setBarChartData] = useState<any[]>([]);
+  const [chartConfig, setChartConfig] = useState<any>({});
 
-  const generateBarChartData = useCallback(() => {
-    const dateGroupedExpenses = Object.values(
-      expenses.reduce<Record<string, { date: string; totalAmount: number }>>((acc, { amountspent, date }) => {
-        const key = date;
-        acc[key] = acc[key] || { date, totalAmount: 0 };
-        acc[key].totalAmount += Number(amountspent);
-        return acc;
-      }, {})
-    );
-  
-    dateGroupedExpenses.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  
-    const labels = dateGroupedExpenses.map(item => item.date);
-    const data = dateGroupedExpenses.map(item => item.totalAmount);
-  
-    setBarChartData({
-      labels,
-      datasets: [
-        {
-          label: "Daily Expenses",
-          data,
-          backgroundColor: "rgba(54, 162, 235, 0.5)",
-          borderColor: "rgba(54, 162, 235, 1)",
-          borderWidth: 1,
-        },
-      ],
-    });
-  }, [expenses]); // Depend on `expenses`
-  
   useEffect(() => {
-    if (expenses && expenses.length > 0) {
-      generateBarChartData();
-    }
-  }, [expenses, generateBarChartData]);
+    if (!expenses || expenses.length === 0) return;
 
-  // Chart options
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Amount Spent'
-        }
-      },
-      x: {
-        title: {
-          display: true,
-          text: 'Date'
-        }
-      }
-    }
-  };
+    const groupedByDate: Record<string, Record<string, number>> = {};
 
-  if (!barChartData) {
-    return <div>Loading chart data...</div>;
-  }
+    expenses.forEach(({ date, category, amountspent }) => {
+      const parsedDate = new Date(date).toISOString().split("T")[0];
+      const cat = category.toLowerCase();
+      if (!groupedByDate[parsedDate]) groupedByDate[parsedDate] = {};
+      if (!groupedByDate[parsedDate][cat]) groupedByDate[parsedDate][cat] = 0;
+      groupedByDate[parsedDate][cat] += Number(amountspent);
+    });
+
+    const dates = Object.keys(groupedByDate).sort();
+    const chartData = dates.map((date) => ({ date, ...groupedByDate[date] }));
+
+    const config: any = {};
+    Object.keys(categoryColors).forEach((key) => {
+      config[key] = {
+        label: categoryLabelsMap[key] || key,
+        color: categoryColors[key],
+      };
+    });
+
+    setBarChartData(chartData);
+    setChartConfig(config);
+  }, [expenses]);
+
+  if (!barChartData.length) return <div>Loading chart data...</div>;
 
   return (
-    <div className="">
-        <div className="justify-content: space-between">
-            <h3 className="text-xl font-semibold mb-2">This Trip Spend</h3>
-            <h2 className="text-xxl font-semibold mb-2">RM {totalExpense}</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle>Total categorized daily spending</CardTitle>
+      </CardHeader>
+      <CardContent className="overflow-hidden">
+        <ChartContainer className="mx-auto w-full h-[420px] sm:h-[200px] md:h-[420px] xl:h-[420px]" config={chartConfig}>
+          <ResponsiveContainer width="100%" height={"150px"}>
+            <BarChart data={barChartData}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                tickFormatter={(value) =>
+                  new Date(value).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                  })
+                }
+              />
+              <YAxis />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
+              {Object.keys(categoryColors).map((key) => (
+                <Bar
+                  key={key}
+                  dataKey={key}
+                  stackId="a"
+                  fill={categoryColors[key]}
+                  radius={[4, 4, 0, 0]}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </CardContent>
+      <CardFooter className="flex-col items-start gap-2 text-sm">
+        <div className="text-muted-foreground leading-none">
+          From {barChartData[0].date} to {barChartData.at(-1)?.date}
         </div>
-      <div className="w-full h-80">
-        <Bar data={barChartData} options={options} />
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 

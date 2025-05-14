@@ -128,8 +128,7 @@ export default function BookingEditDialog({ bookingData, bookingType, open, onOp
 
     if (result.status === "success") {
       onOpenChange(false);
-      router.push("/booking-management");
-      window.location.reload();
+      router.push(`/booking-management/${bookingData.tripid}`);
     } else {
       console.error("Error:", result.message);
     }
