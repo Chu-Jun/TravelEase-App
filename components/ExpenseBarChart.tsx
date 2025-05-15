@@ -92,7 +92,7 @@ const ExpenseBarChart: React.FC<ExpenseBarChartProps> = ({ expenses, totalExpens
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Total categorized daily spending</CardTitle>
+        <CardTitle>Total Categorized Daily Spending</CardTitle>
       </CardHeader>
       <CardContent className="overflow-hidden">
         <ChartContainer className="mx-auto w-full h-[420px] sm:h-[200px] md:h-[420px] xl:h-[420px]" config={chartConfig}>

@@ -127,3 +127,26 @@ gmpx-place-picker {
 .react-calendar__navigation {
   pointer-events: none;
 }
+
+.react-calendar__navigation__arrow {
+  visibility: hidden;
+}
+
+.react-calendar__tile--now {
+  border-radius: 0.25rem;
+}
+
+.react-calendar__tile--range{
+  background-color: #99aec2 !important;
+  border-radius: 0.25rem;
+  color: white !important;
+}
+
+.react-calendar__tile--rangeStart, .react-calendar__tile--rangeEnd {
+  background-color: #003667 !important;
+  color: white !important;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none;
+}

@@ -495,47 +495,113 @@ export async function getTripDetails(tripId: any) {
 }
 
 export const editTripAction = async (formData: any) => {
-
   const supabase = await createClient();
 
   console.log(formData);
 
-  // const {
-  //   data: { user },
-  // } = await supabase.auth.getUser();
-
+  const tripId = formData.id;
   const tripName = formData.tripName as string;
   const tripStartDate = formData.tripStartDate as string;
   const tripEndDate = formData.tripEndDate as string;
   const tag = formData.tag as string;
   const touristNum = parseInt(formData.touristNum, 10);
 
-  const { data, error } = await supabase
-    .from("trip")
-    .update({
-      tripname: tripName,
-      tripstartdate: tripStartDate,
-      tripenddate: tripEndDate,
-      tag: tag,
-      touristnum: touristNum,
-    }).eq("tripid", formData.id);
+  try {
+    // Get the current trip data to compare dates
+    const { data: currentTrip, error: fetchError } = await supabase
+      .from("trip")
+      .select("tripstartdate, tripenddate")
+      .eq("tripid", tripId)
+      .single();
 
-  if (error) {
-    console.log(data);
-    return {
-      status: "error",
-      message: "Could not update trip",
-    };
-  } else {
+    if (fetchError) {
+      throw new Error("Failed to fetch current trip data");
+    }
+
+    // Update the trip details
+    const { error: updateError } = await supabase
+      .from("trip")
+      .update({
+        tripname: tripName,
+        tripstartdate: tripStartDate,
+        tripenddate: tripEndDate,
+        tag: tag,
+        touristnum: touristNum,
+      })
+      .eq("tripid", tripId);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    // If dates have changed, handle itinerary entries
+    if (currentTrip.tripstartdate !== tripStartDate || currentTrip.tripenddate !== tripEndDate) {
+      // Calculate date ranges for old and new trips
+      const oldStartDate = new Date(currentTrip.tripstartdate);
+      const oldEndDate = new Date(currentTrip.tripenddate);
+      const newStartDate = new Date(tripStartDate);
+      const newEndDate = new Date(tripEndDate);
+
+      // Get all itinerary entries for this trip
+      const { data: itineraryData, error: itineraryError } = await supabase
+        .from("itineraryperday")
+        .select("date")
+        .eq("tripid", tripId);
+
+      if (itineraryError) {
+        throw new Error("Failed to fetch itinerary data");
+      }
+
+      if (itineraryData && itineraryData.length > 0) {
+        // Find dates that are no longer within the trip range
+        const datesToDelete = itineraryData
+          .map(item => item.date)
+          .filter(dateStr => {
+            const itemDate = new Date(dateStr);
+            return itemDate < newStartDate || itemDate > newEndDate;
+          });
+
+        // Delete itinerary items for days that are now outside the trip date range
+        if (datesToDelete.length > 0) {
+          const { error: deleteError } = await supabase
+            .from("itineraryperday")
+            .delete()
+            .eq("tripid", tripId)
+            .in("date", datesToDelete);
+
+          if (deleteError) {
+            throw new Error("Failed to remove outdated itinerary entries");
+          }
+        }
+      }
+    }
+
     // Revalidate the itinerary page
     revalidatePath(`/itinerary-planning`);
+    revalidatePath(`/itinerary-planning/${tripId}`);
+    
     return {
       status: "success",
       message: "Trip Updated",
     };
+  } catch (error) {
+    console.error("Error updating trip:", error);
+    
+    // Type guard approach
+    if (error instanceof Error) {
+      return { 
+        status: "error", 
+        message: "Could not update trip: " + error.message 
+      };
+    }
+    
+    // For non-standard errors
+    return { 
+      status: "error", 
+      message: "Could not update trip: " + String(error) 
+    };
   }
-
-}
+};
 
 export const editTripBudgetAction = async (formData: any) => {
 
