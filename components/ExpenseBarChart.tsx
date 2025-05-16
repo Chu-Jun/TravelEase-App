@@ -100,14 +100,18 @@ const ExpenseBarChart: React.FC<ExpenseBarChartProps> = ({ expenses, totalExpens
     
     // Apply date filter
     if (dateRange?.from) {
+      const fromDate = new Date(dateRange.from);
+      fromDate.setHours(0, 0, 0, 0);
       filtered = filtered.filter(expense => 
-        isAfter(new Date(expense.date), new Date(dateRange.from.setHours(0, 0, 0, 0)))
+        isAfter(new Date(expense.date), fromDate)
       );
     }
-    
+
     if (dateRange?.to) {
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(0, 0, 0, 0);
       filtered = filtered.filter(expense => 
-        isBefore(new Date(expense.date), new Date(addDays(dateRange.to, 1).setHours(0, 0, 0, 0)))
+        isBefore(new Date(expense.date), addDays(toDate, 1))
       );
     }
     
