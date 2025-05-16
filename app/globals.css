@@ -136,17 +136,28 @@ gmpx-place-picker {
   border-radius: 0.25rem;
 }
 
-.react-calendar__tile--range{
+.react-calendar__tile--range {
   background-color: #99aec2 !important;
   border-radius: 0.25rem;
   color: white !important;
 }
 
-.react-calendar__tile--rangeStart, .react-calendar__tile--rangeEnd {
+.rdp-range_middle{
+  background-color: #99aec2 !important;
+  border-radius: full;
+  color: white !important;
+}
+
+.react-calendar__tile--rangeStart, .react-calendar__tile--rangeEnd, .rdp-range_start, .rdp-range_end {
   background-color: #003667 !important;
   color: white !important;
 }
 
 .react-calendar__month-view__weekdays__weekday abbr {
   text-decoration: none;
+}
+
+.rdp-weekdays {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto auto;
 }
