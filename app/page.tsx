@@ -335,7 +335,7 @@ export default function Home() {
           Must Visit
         </p>
         <p className="text-sm md:text-base mb-4">
-          A list of the top 25 Best Tourist Places to See in the world for a perfect trip.
+          A list of the top 25 best tourist places to see in the world for a perfect trip.
         </p>
         
         <BestPlaceCarousel />
