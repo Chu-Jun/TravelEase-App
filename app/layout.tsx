@@ -6,6 +6,7 @@ import HeaderAuth from "@/components/header-auth";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
 import { Analytics } from "@vercel/analytics/next"
+import ReminderBanner from '@/components/ReminderBanner';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,10 +36,10 @@ export default function RootLayout({
         >
           <AuthProvider>
           <div className="bg-background mt-12 min-h-screen max-w-screen">
-          
             <Navbar>
               <HeaderAuth />
             </Navbar>
+            <ReminderBanner />
             {children}
           <Toaster />
           
