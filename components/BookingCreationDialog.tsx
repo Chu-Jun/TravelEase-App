@@ -151,22 +151,22 @@ export default function BookingCreationDialog({ tripData }: any) {
             <FormItem>
               <FormLabel>Select Booking Type</FormLabel>
               <FormControl>
-              <RadioGroup.Root value={bookingType} onValueChange={setBookingType}>
-                <div className="flex space-x-2">
-                  <div className="bg-primary rounded-lg p-2 text-white">
-                    <RadioGroup.Item value="accommodation" id="accommodation" />
-                    <label htmlFor="accommodation">Accommodation</label>
+                <RadioGroup.Root value={bookingType} onValueChange={setBookingType}>
+                  <div className="flex space-x-2">
+                    <div className={`${bookingType === 'accommodation' ? 'bg-primary' : 'bg-title'} rounded-lg p-2 text-white cursor-pointer`}>
+                      <RadioGroup.Item value="accommodation" id="accommodation" />
+                      <label htmlFor="accommodation" className="cursor-pointer">Accommodation</label>
+                    </div>
+                    <div className={`${bookingType === 'flight' ? 'bg-primary' : 'bg-title'} rounded-lg p-2 text-white cursor-pointer`}>
+                      <RadioGroup.Item value="flight" id="flight" />
+                      <label htmlFor="flight" className="cursor-pointer">Flight</label>
+                    </div>
+                    <div className={`${bookingType === 'activity' ? 'bg-primary' : 'bg-title'} rounded-lg p-2 text-white cursor-pointer`}>
+                      <RadioGroup.Item value="activity" id="activity" />
+                      <label htmlFor="activity" className="cursor-pointer">Activity</label>
+                    </div>
                   </div>
-                  <div className="bg-primary rounded-lg p-2 text-white">
-                    <RadioGroup.Item value="flight" id="flight" />
-                    <label htmlFor="flight">Flight</label>
-                  </div>
-                  <div className="bg-primary rounded-lg p-2 text-white">
-                    <RadioGroup.Item value="activity" id="activity" />
-                    <label htmlFor="activity">Activity</label>
-                  </div>
-                </div>
-              </RadioGroup.Root>
+                </RadioGroup.Root>
               </FormControl>
               <FormMessage />
             </FormItem>
