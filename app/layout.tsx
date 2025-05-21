@@ -39,7 +39,7 @@ export default function RootLayout({
             <Navbar>
               <HeaderAuth />
             </Navbar>
-            <ReminderBanner />
+            {/* <ReminderBanner /> */}
             {children}
           <Toaster />
           

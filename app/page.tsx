@@ -139,7 +139,7 @@ export default function Home() {
                               <FormItem className="flex-1">
                                 <FormLabel className="text-title font-medium">Start Date</FormLabel>
                                 <FormControl>
-                                  <Input className="bg-white" type="date" {...field} />
+                                  <Input className="bg-white" type="date" min={new Date().toISOString().split("T")[0]} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -153,7 +153,7 @@ export default function Home() {
                               <FormItem className="flex-1">
                                 <FormLabel className="text-title font-medium">End Date</FormLabel>
                                 <FormControl>
-                                  <Input className="bg-white" type="date" {...field} />
+                                  <Input className="bg-white" type="date" min={new Date().toISOString().split("T")[0]} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -171,11 +171,11 @@ export default function Home() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                                   <FormControl>
                                     <SelectTrigger className="bg-white">
-                                      <SelectValue placeholder="Tag" />
+                                      <SelectValue placeholder="Trip Type" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent className="bg-white text-black">
-                                    <SelectItem value="N/A">Select Tag</SelectItem>
+                                    <SelectItem value="N/A">Select Type</SelectItem>
                                     <SelectItem value="Local">Local</SelectItem>
                                     <SelectItem value="Abroad">Abroad</SelectItem>
                                   </SelectContent>
@@ -249,7 +249,7 @@ export default function Home() {
                         <FormItem className="col-span-2">
                           <FormLabel className="text-title font-medium">Start Date</FormLabel>
                           <FormControl>
-                            <Input className="bg-white" type="date" placeholder="Start Date" {...field} />
+                            <Input className="bg-white" type="date" placeholder="Start Date" min={new Date().toISOString().split("T")[0]} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -262,7 +262,7 @@ export default function Home() {
                         <FormItem className="col-span-2">
                           <FormLabel className="text-title font-medium">End Date</FormLabel>
                           <FormControl>
-                            <Input className="bg-white" type="date" placeholder="End Date" {...field} />
+                            <Input className="bg-white" type="date" placeholder="End Date" min={new Date().toISOString().split("T")[0]} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -274,14 +274,14 @@ export default function Home() {
                       render={({ field }) => (
                         <FormItem className="col-span-2">
                           <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
-                          <FormLabel className="text-title font-medium">Tag</FormLabel>
+                          <FormLabel className="text-title font-medium">Trip Type</FormLabel>
                             <FormControl>
                               <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Tag" />
+                                <SelectValue placeholder="Trip Type" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="bg-white text-title">
-                              <SelectItem value="N/A">Select Tag</SelectItem>
+                              <SelectItem value="N/A">Select Type</SelectItem>
                               <SelectItem value="Local">Local</SelectItem>
                               <SelectItem value="Abroad">Abroad</SelectItem>
                             </SelectContent>

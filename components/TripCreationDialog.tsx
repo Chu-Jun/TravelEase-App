@@ -107,7 +107,7 @@ export default function TripCreationDialog() {
                                     <FormItem>
                                         <FormLabel>Trip Start Date</FormLabel>
                                         <FormControl>
-                                            <Input type="date" placeholder="Select Date" {...field} />
+                                            <Input type="date" placeholder="Select Date" min={new Date().toISOString().split("T")[0]} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -120,7 +120,7 @@ export default function TripCreationDialog() {
                                     <FormItem>
                                         <FormLabel>Trip End Date</FormLabel>
                                         <FormControl>
-                                            <Input type="date" placeholder="Select Date" {...field} />
+                                            <Input type="date" placeholder="Select Date" min={new Date().toISOString().split("T")[0]} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -131,15 +131,15 @@ export default function TripCreationDialog() {
                                 name="tag"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tag</FormLabel>
+                                        <FormLabel>Trip Type</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Tag" />
+                                                    <SelectValue placeholder="Select Type" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-white text-title">
-                                                <SelectItem value="N/A">Select Tag</SelectItem>
+                                                <SelectItem value="N/A">Select Type</SelectItem>
                                                 <SelectItem value="Local">Local</SelectItem>
                                                 <SelectItem value="Abroad">Abroad</SelectItem>
                                             </SelectContent>
