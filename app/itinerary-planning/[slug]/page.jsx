@@ -408,7 +408,7 @@ const TravelEaseItineraryPage = () => {
       };
       
       // Call the API
-      const response = await fetch('https://striking-joy-452217-j3.df.r.appspot.com/api/optimize-route', {
+      const response = await fetch('https://true-eye-460602-n0.et.r.appspot.com/api/optimize-route', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
